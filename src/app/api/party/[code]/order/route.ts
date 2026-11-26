@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import type { LocationId } from "@/data/site";
 import { guestOrder, getPartyByCode } from "@/lib/platform/party";
 import { createStripeCheckout, stripeReady } from "@/lib/platform/stripe";
+import { demoPaymentsAllowed } from "@/lib/platform/payments";
 
 export async function POST(request: Request, context: { params: Promise<{ code: string }> }) {
   const { code } = await context.params;
@@ -15,7 +16,7 @@ export async function POST(request: Request, context: { params: Promise<{ code: 
       code,
       guestId: String(body.guestId),
       items: body.items || [],
-      payNow: Boolean(body.payNow) && !live,
+      payNow: Boolean(body.payNow) && !live && demoPaymentsAllowed(),
     });
     const unpaid = Boolean(body.payNow) && live && order.totalPence > 0 && !order.payments?.some((payment) => payment.status === "PAID");
     if (unpaid && locationId) {

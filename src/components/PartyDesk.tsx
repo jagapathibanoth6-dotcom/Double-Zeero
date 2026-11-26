@@ -13,7 +13,7 @@ type Guest = {
   ordered: boolean;
   totalPence: number;
   paid: boolean;
-  items: { name: string; quantity: number; unitPence: number }[];
+  items: { productId?: string | null; name: string; quantity: number; unitPence: number }[];
 };
 type Product = {
   id: string;
@@ -169,7 +169,7 @@ export function PartyDesk({ code }: { code: string }) {
                   aria-pressed={guestId === guest.id}
                   onClick={() => {
                     setGuestId(guest.id);
-                    setBasket(guest.items.map((i) => ({ productId: "", name: i.name, quantity: i.quantity, unitPence: i.unitPence })));
+                    setBasket(guest.items.map((i) => ({ productId: i.productId || "", name: i.name, quantity: i.quantity, unitPence: i.unitPence })));
                   }}
                 >
                   {guest.ordered ? "✓" : "○"} {guest.name}

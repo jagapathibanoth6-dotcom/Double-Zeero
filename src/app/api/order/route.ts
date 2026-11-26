@@ -2,6 +2,13 @@ import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import type { LocationId } from "@/data/site";
 import { createOrder } from "@/lib/platform/orders";
+import { demoPaymentsAllowed } from "@/lib/platform/payments";
+
+/** Customers can only place collection or delivery orders from the website. */
+function publicOrderSource(value: unknown) {
+  if (value === "CLICK_COLLECT" || value === "DZ_DELIVERY") return value;
+  throw new Error("Choose click & collect or home delivery.");
+}
 import { setCustomerCookie, setPreferredLocation } from "@/lib/platform/session";
 
 export async function GET(request: Request) {
@@ -21,7 +28,6 @@ export async function POST(request: Request) {
   try {
     const result = await createOrder({
       locationId: body.locationId as LocationId,
-      source: String(body.source),
       items: body.items || [],
       name: String(body.name || ""),
       email: String(body.email || ""),
@@ -33,9 +39,11 @@ export async function POST(request: Request) {
       address: String(body.address || ""),
       offerId: body.offerId || undefined,
       via: String(body.via || ""),
-      chargeNow: body.chargeNow !== false,
+      // Without Stripe, "paying" records a demo payment — only allowed outside production.
+      chargeNow: body.chargeNow !== false && demoPaymentsAllowed(),
+      source: publicOrderSource(body.source),
     });
-    if (result.order.customerId) await setCustomerCookie(result.order.customerId);
+    if (result.access?.isNew && result.order.customerId) await setCustomerCookie(result.order.customerId);
     await setPreferredLocation(result.order.locationId as LocationId);
     return NextResponse.json({ order: result.order, access: result.access, mail: result.mail });
   } catch (error) {

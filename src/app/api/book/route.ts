@@ -5,6 +5,7 @@ import { db } from "@/lib/db";
 import { createBooking } from "@/lib/platform/booking";
 import { formatMoney } from "@/lib/platform/money";
 import { setCustomerCookie, setPreferredLocation } from "@/lib/platform/session";
+import { demoPaymentsAllowed } from "@/lib/platform/payments";
 import { createResdiaryBooking, getResdiaryBooking, resdiaryConfigured } from "@/lib/resdiary";
 
 function isLocation(value: string): value is LocationId {
@@ -101,11 +102,11 @@ export async function POST(request: Request) {
       notes: String(body.notes || ""),
       highchair: Boolean(body.highchair),
       source: String(body.source || "website"),
-      payDeposit: Boolean(body.payDeposit),
+      payDeposit: Boolean(body.payDeposit) && demoPaymentsAllowed(),
       paymentMode: String(body.paymentMode || "INDIVIDUAL"),
     });
 
-    await setCustomerCookie(result.customer.id);
+    if (result.access.isNew) await setCustomerCookie(result.customer.id);
     await setPreferredLocation(locationId);
 
     if (resdiaryConfigured() && result.band === "NORMAL") {

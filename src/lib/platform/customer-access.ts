@@ -13,7 +13,7 @@ export async function issueCustomerAccess(input: { email: string; name: string; 
         phone: input.phone || existing.phone,
       },
     });
-    return { customer, tempPassword: null as string | null, isNew: false };
+    return { customer, tempPassword: null as string | null, isNew: false, created: false };
   }
 
   const tempPassword = generateTempPassword();
@@ -37,7 +37,9 @@ export async function issueCustomerAccess(input: { email: string; name: string; 
         },
       });
 
-  return { customer, tempPassword, isNew: true };
+  // `created` is true only when this request made the account. Callers may sign the
+  // visitor in only then — otherwise anyone could type someone else's email.
+  return { customer, tempPassword, isNew: true, created: !existing };
 }
 
 export async function sendAccessEmail(input: {

@@ -19,7 +19,7 @@ export async function POST(request: Request) {
       foodRequirements: String(body.foodRequirements || ""),
       message: String(body.message || ""),
     });
-    await setCustomerCookie(result.enquiry.customerId || "");
+    if (result.access.isNew && result.enquiry.customerId) await setCustomerCookie(result.enquiry.customerId);
     return NextResponse.json({ enquiry: result.enquiry, access: result.access, mail: result.mail });
   } catch (error) {
     return NextResponse.json({ error: error instanceof Error ? error.message : "Could not send enquiry." }, { status: 400 });

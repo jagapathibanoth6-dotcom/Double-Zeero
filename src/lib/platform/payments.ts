@@ -2,6 +2,17 @@ import { db } from "@/lib/db";
 import { leftoverPence, type PaymentRow } from "@/lib/platform/pay";
 import { paymentContext, sendPaymentMail, sendRefundMail } from "@/lib/platform/pay-mail";
 
+/**
+ * Demo payments record a "paid" payment without taking money. They exist so the
+ * site can be tried before Stripe is connected. Public pages may only use them
+ * outside production, unless ALLOW_DEMO_PAYMENTS=true is set on purpose.
+ * Staff recording cash/card-terminal payments in the dashboard are not affected.
+ */
+export function demoPaymentsAllowed() {
+  return process.env.NODE_ENV !== "production" || process.env.ALLOW_DEMO_PAYMENTS === "true";
+}
+
+/** Record a payment. Without a provider it is a demo/manual payment (see demoPaymentsAllowed). */
 export async function charge(input: {
   amountPence: number;
   kind: "ORDER" | "DEPOSIT";

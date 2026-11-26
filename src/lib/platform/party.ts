@@ -1,6 +1,6 @@
 import { db } from "@/lib/db";
 import { partyReminderText } from "@/lib/platform/notify";
-import { createOrder, queuePrintJobs, type BasketItem } from "@/lib/platform/orders";
+import { createOrder, priceBasket, queuePrintJobs, type BasketItem } from "@/lib/platform/orders";
 import { charge } from "@/lib/platform/payments";
 import type { LocationId } from "@/data/site";
 import type { Serialized } from "@/types/serialized";
@@ -50,17 +50,18 @@ export async function guestOrder(input: {
   if (!guest) throw new Error("Guest not found");
   if (party.deadlineAt && party.deadlineAt < new Date()) throw new Error("Pre-order is closed.");
 
+  const items = await priceBasket(party.booking.locationId as LocationId, input.items);
   const existing = guest.orders[0];
   if (existing) {
     await db.orderItem.deleteMany({ where: { orderId: existing.id } });
-    const subtotal = input.items.reduce((sum, item) => sum + item.unitPence * item.quantity, 0);
+    const subtotal = items.reduce((sum, item) => sum + item.unitPence * item.quantity, 0);
     await db.order.update({
       where: { id: existing.id },
       data: {
         subtotalPence: subtotal,
         totalPence: subtotal,
         items: {
-          create: input.items.map((item) => ({
+          create: items.map((item) => ({
             productId: item.productId,
             name: item.name,
             quantity: item.quantity,
@@ -76,14 +77,14 @@ export async function guestOrder(input: {
         await charge({ amountPence: subtotal, kind: "ORDER", orderId: existing.id, to: party.booking.email });
       }
     }
-    await queuePrintJobs(existing.id, input.items.map((item) => item.name));
+    await queuePrintJobs(existing.id, items.map((item) => item.name));
     return db.order.findUniqueOrThrow({ where: { id: existing.id }, include: { items: true, payments: true } });
   }
 
   const result = await createOrder({
     locationId: party.booking.locationId as LocationId,
     source: "PARTY_PREORDER",
-    items: input.items,
+    items: items,
     name: guest.name,
     email: party.booking.email,
     phone: party.booking.phone,

@@ -325,7 +325,7 @@ export async function createBooking(input: {
     booking: saved,
     party,
     customer,
-    access: { email: customer.email, tempPassword: access.tempPassword, isNew: access.isNew },
+    access: { email: customer.email, tempPassword: access.created ? access.tempPassword : null, isNew: access.created },
     mail,
     band,
     depositRequired: needsDeposit,
@@ -392,7 +392,7 @@ export async function createEnquiry(input: {
       details,
     }),
   };
-  return { enquiry, access: { email: customer.email, tempPassword: access.tempPassword, isNew: access.isNew }, mail };
+  return { enquiry, access: { email: customer.email, tempPassword: access.created ? access.tempPassword : null, isNew: access.created }, mail };
 }
 
 export async function convertEnquiry(enquiryId: string, time: string, staffName: string) {

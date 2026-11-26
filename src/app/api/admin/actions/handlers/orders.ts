@@ -50,6 +50,7 @@ export const ordersActions: ActionHandlers = {
     const result = await createOrder({
       locationId,
       source: "POS",
+      trustedPrices: true,
       items: items.map((item: { productId?: string; name: string; quantity: number; unitPence: number; notes?: string }) => ({
         productId: item.productId,
         name: String(item.name),
