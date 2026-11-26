@@ -3,7 +3,7 @@ import path from "path";
 
 const nextConfig: NextConfig = {
   outputFileTracingRoot: path.join(__dirname),
-  allowedDevOrigins: ["192.168.1.130", "192.168.*.*", "10.*.*.*"],
+  allowedDevOrigins: ["192.168.1.130", "192.168.*.*", "10.*.*.*", "*.app.github.dev"],
   images: {
     formats: ["image/avif", "image/webp"],
   },

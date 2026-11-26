@@ -14,6 +14,14 @@ It is a single [Next.js](https://nextjs.org) app. One `npm run dev` starts all t
 
 ---
 
+## Try it in the browser (no install)
+
+[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/jagapathibanoth6-dotcom/Double-Zeero?quickstart=1)
+
+Click the button, then **Create codespace**. After 2–3 minutes the site opens in a new tab. The dashboard login is shown in `CODESPACE-LOGIN.txt`. Each codespace has its own test database.
+
+---
+
 ## Getting started
 
 You need **Node.js 20 or newer**.

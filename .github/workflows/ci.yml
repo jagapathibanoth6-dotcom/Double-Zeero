@@ -70,3 +70,28 @@ jobs:
       - name: Server log
         if: always()
         run: tail -n 200 server.log || true
+
+  codespace-setup:
+    # Checks that .devcontainer/setup.sh prepares a fresh machine and the dev site starts.
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Run Codespace setup script
+        run: bash .devcontainer/setup.sh
+      - name: Start dev server and open pages
+        run: |
+          npm run dev > dev.log 2>&1 &
+          for i in $(seq 1 90); do curl -sf http://localhost:3000/robots.txt > /dev/null && break; sleep 1; done
+          for page in / /menu /order/collect /book /admin/login; do
+            code=$(curl -s -o /dev/null -w "%{http_code}" "http://localhost:3000$page")
+            echo "$page -> $code"; [ "$code" = "200" ] || { tail -50 dev.log; exit 1; }
+          done
+          email=$(grep '^ADMIN_EMAIL=' .env | cut -d'"' -f2); password=$(grep '^ADMIN_PASSWORD=' .env | cut -d'"' -f2)
+          code=$(curl -s -o /dev/null -w "%{http_code}" -H 'content-type: application/json' \
+            -d "{\"email\":\"$email\",\"password\":\"$password\"}" http://localhost:3000/api/admin/login)
+          echo "admin login -> $code"; [ "$code" = "200" ]
