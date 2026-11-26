@@ -119,7 +119,7 @@ async function main() {
     }
   });
   const pizza = products.find((p) => p.category === "PIZZAS" && p.available);
-  const drink = products.find((p) => p.category === "DRINKS" && p.available);
+  const drink = products.find((p) => p.id !== pizza?.id && p.available && p.category !== "TOPPINGS");
 
   console.log("\nDashboard security");
   await check("/admin without sign-in redirects to login", async () => {
@@ -226,7 +226,7 @@ async function main() {
       body: {
         locationId: "manchester",
         source: "CLICK_COLLECT",
-        items: [{ productId: drink.id, name: drink.name, quantity: 1, unitPence: 0, label: drink.prices[0].label }],
+        items: [{ productId: drink.id, name: drink.name, quantity: 1, unitPence: 0, label: (drink.prices.find((p) => p.available) || drink.prices[0]).label }],
         name: "Someone Else",
         email,
         phone: "07000000001",
