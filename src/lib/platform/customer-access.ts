@@ -1,14 +1,6 @@
-import { createHash, randomBytes } from "crypto";
 import { db } from "@/lib/db";
 import { notify } from "@/lib/platform/notify";
-
-export function hashSecret(value: string) {
-  return createHash("sha256").update(value).digest("hex");
-}
-
-export function generateTempPassword() {
-  return `DZ-${randomBytes(3).toString("hex").toUpperCase()}`;
-}
+import { generateTempPassword, hashPassword } from "@/lib/platform/password";
 
 export async function issueCustomerAccess(input: { email: string; name: string; phone?: string }) {
   const email = input.email.trim().toLowerCase();
@@ -31,7 +23,7 @@ export async function issueCustomerAccess(input: { email: string; name: string; 
         data: {
           name: input.name || existing.name,
           phone: input.phone || existing.phone,
-          passwordHash: hashSecret(tempPassword),
+          passwordHash: hashPassword(tempPassword),
           mustChangePassword: true,
         },
       })
@@ -40,7 +32,7 @@ export async function issueCustomerAccess(input: { email: string; name: string; 
           email,
           name: input.name.trim(),
           phone: input.phone?.trim() || "",
-          passwordHash: hashSecret(tempPassword),
+          passwordHash: hashPassword(tempPassword),
           mustChangePassword: true,
         },
       });

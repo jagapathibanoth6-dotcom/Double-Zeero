@@ -1,3 +1,5 @@
+import { randomInt } from "crypto";
+
 export function penceFromPrice(price?: string) {
   if (!price) return 0;
   const n = Number(price.replace(/[^0-9.]/g, ""));
@@ -16,13 +18,23 @@ export function slugify(value: string) {
     .replace(/^-|-$/g, "");
 }
 
+/** Readable random code (no 0/O/1/I) from a cryptographically secure source. */
 export function randomCode(length = 7) {
   const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-  return Array.from({ length }, () => chars[Math.floor(Math.random() * chars.length)]).join("");
+  return Array.from({ length }, () => chars[randomInt(chars.length)]).join("");
 }
 
-export function nextRef(prefix: string, n: number) {
-  return `${prefix}${String(n).padStart(5, "0")}`;
+/**
+ * Public reference for an order, booking or enquiry, e.g. `O-7KQ4M2XP`.
+ * References appear in links that let customers view and cancel, so they
+ * must be unguessable — never sequential.
+ */
+export async function uniqueRef(prefix: string, exists: (ref: string) => Promise<boolean>) {
+  for (let attempt = 0; attempt < 10; attempt++) {
+    const ref = `${prefix}-${randomCode(8)}`;
+    if (!(await exists(ref))) return ref;
+  }
+  throw new Error(`Could not generate a unique ${prefix} reference.`);
 }
 
 export const TABLE_SITTING_MIN = 90;

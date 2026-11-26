@@ -2,12 +2,13 @@ import { db } from "@/lib/db";
 import { locations, type LocationId, type VisitType } from "@/data/site";
 import { fromMinutes, generateSlots, londonParts, todayISO, toMinutes } from "@/lib/booking";
 import { hoursFromSettings } from "@/lib/platform/hours";
-import { durationForGuests, formatMoney, nextRef, randomCode } from "@/lib/platform/money";
+import { durationForGuests, formatMoney, randomCode, uniqueRef } from "@/lib/platform/money";
 import type { MailBundle } from "@/lib/platform/mail-events";
 import { notify, partyReminderText } from "@/lib/platform/notify";
 import { charge } from "@/lib/platform/payments";
 import { bookingBand, getSettings, sittingCap } from "@/lib/platform/settings";
-import { generateTempPassword, hashSecret, issueCustomerAccess, sendAccessEmail } from "@/lib/platform/customer-access";
+import { issueCustomerAccess, sendAccessEmail } from "@/lib/platform/customer-access";
+import { generateTempPassword, hashPassword } from "@/lib/platform/password";
 
 function overlaps(aStart: number, aEnd: number, bStart: number, bEnd: number) {
   return aStart < bEnd && bStart < aEnd;
@@ -197,7 +198,7 @@ export async function finalizePaidBooking(bookingId: string, paidPence: number) 
     tempPassword = generateTempPassword();
     await db.customer.update({
       where: { id: booking.customer.id },
-      data: { passwordHash: hashSecret(tempPassword), mustChangePassword: true },
+      data: { passwordHash: hashPassword(tempPassword), mustChangePassword: true },
     });
   }
   await sendBookingConfirmedMail({
@@ -210,13 +211,11 @@ export async function finalizePaidBooking(bookingId: string, paidPence: number) 
 }
 
 async function nextBookingRef() {
-  const count = await db.booking.count();
-  return nextRef("B", count + 10452);
+  return uniqueRef("B", async (ref) => Boolean(await db.booking.findUnique({ where: { ref }, select: { id: true } })));
 }
 
 async function nextEnquiryRef() {
-  const count = await db.enquiry.count();
-  return nextRef("ENQ", count + 1050);
+  return uniqueRef("ENQ", async (ref) => Boolean(await db.enquiry.findUnique({ where: { ref }, select: { id: true } })));
 }
 
 export async function createBooking(input: {
@@ -300,7 +299,7 @@ export async function createBooking(input: {
     party = await db.party.create({
       data: {
         bookingId: booking.id,
-        code: `DZ${randomCode(5)}`,
+        code: `DZ${randomCode(8)}`,
         paymentMode: input.paymentMode || "INDIVIDUAL",
         deadlineAt: deadline,
       },

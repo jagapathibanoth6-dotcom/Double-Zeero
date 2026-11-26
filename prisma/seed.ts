@@ -1,6 +1,7 @@
 import { PrismaClient } from "@prisma/client";
 import { menus, type MenuItem } from "../src/data/menus";
 import { penceFromPrice, slugify } from "../src/lib/platform/money";
+import { hashPassword } from "../src/lib/platform/password";
 
 const db = new PrismaClient();
 
@@ -45,22 +46,26 @@ function collect(menu: (typeof menus)["manchester"]) {
   return rows;
 }
 
+/**
+ * Creates the first owner account from ADMIN_EMAIL / ADMIN_PASSWORD in .env.
+ * Existing accounts are left untouched — use `npm run staff:password` to reset one.
+ */
+async function seedOwner() {
+  const email = process.env.ADMIN_EMAIL?.trim().toLowerCase();
+  const password = process.env.ADMIN_PASSWORD || "";
+  if (!email || password.length < 10) {
+    console.warn("Skipping owner account: set ADMIN_EMAIL and ADMIN_PASSWORD (10+ characters) in .env.");
+    return;
+  }
+  await db.staffUser.upsert({
+    where: { email },
+    update: {},
+    create: { email, name: "Owner", password: hashPassword(password), role: "owner" },
+  });
+}
+
 async function main() {
-  await db.staffUser.upsert({
-    where: { email: "owner@doublezero.local" },
-    update: {},
-    create: {
-      email: "owner@doublezero.local",
-      name: "Owner",
-      password: "doublezero",
-      role: "owner",
-    },
-  });
-  await db.staffUser.upsert({
-    where: { email: "kitchen@doublezero.local" },
-    update: {},
-    create: { email: "kitchen@doublezero.local", name: "Kitchen", password: "kitchen", role: "kitchen" },
-  });
+  await seedOwner();
 
   for (const locationId of ["manchester", "chorlton"] as const) {
     await db.locationSettings.upsert({

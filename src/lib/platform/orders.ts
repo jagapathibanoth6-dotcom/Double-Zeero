@@ -1,6 +1,6 @@
 import { db } from "@/lib/db";
 import type { LocationId } from "@/data/site";
-import { formatMoney, nextRef } from "@/lib/platform/money";
+import { formatMoney, uniqueRef } from "@/lib/platform/money";
 import { sendCustomerMail, type MailBundle } from "@/lib/platform/mail-events";
 import { notify } from "@/lib/platform/notify";
 import { sendCancelMail } from "@/lib/platform/pay-mail";
@@ -39,8 +39,7 @@ export async function quoteDelivery(locationId: LocationId, address: string) {
 }
 
 async function nextOrderRef() {
-  const count = await db.order.count();
-  return nextRef("O", count + 20455);
+  return uniqueRef("O", async (ref) => Boolean(await db.order.findUnique({ where: { ref }, select: { id: true } })));
 }
 
 export function applyOffer(subtotal: number, offer: { percentOff: number; minSpendPence: number; maxDiscountPence: number } | null) {

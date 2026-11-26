@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import type { LocationId } from "@/data/site";
-import { hashSecret, publicCustomer } from "@/lib/platform/customer-access";
+import { publicCustomer } from "@/lib/platform/customer-access";
+import { hashPassword, verifyPassword } from "@/lib/platform/password";
+import { clientIp, rateLimit } from "@/lib/platform/rate-limit";
 import { formatMoney } from "@/lib/platform/money";
 import { quoteDelivery } from "@/lib/platform/orders";
 import { customerCancelBooking, customerCancelOrder } from "@/lib/platform/customer-cancel";
@@ -57,7 +59,7 @@ export async function POST(request: Request) {
     if (next.length < 6) return NextResponse.json({ error: "Use at least 6 characters." }, { status: 400 });
     await db.customer.update({
       where: { id: customer.id },
-      data: { passwordHash: hashSecret(next), mustChangePassword: false },
+      data: { passwordHash: hashPassword(next), mustChangePassword: false },
     });
     return NextResponse.json({ ok: true });
   }
@@ -134,7 +136,7 @@ export async function POST(request: Request) {
         phone,
         email,
         ...(password
-          ? { passwordHash: hashSecret(password), mustChangePassword: false }
+          ? { passwordHash: hashPassword(password), mustChangePassword: false }
           : {}),
       },
     });
@@ -227,9 +229,16 @@ export async function POST(request: Request) {
   if (!email.includes("@") || !password) {
     return NextResponse.json({ error: "Enter the email and temporary password from your confirmation." }, { status: 400 });
   }
+  if (!rateLimit(`customer-login:${clientIp(request)}`, 10, 15 * 60_000).ok) {
+    return NextResponse.json({ error: "Too many attempts. Try again in a few minutes." }, { status: 429 });
+  }
   const customer = await db.customer.findUnique({ where: { email } });
-  if (!customer?.passwordHash || customer.passwordHash !== hashSecret(password)) {
+  const check = verifyPassword(password, customer?.passwordHash);
+  if (!customer || !check.ok) {
     return NextResponse.json({ error: "Wrong email or password." }, { status: 401 });
+  }
+  if (check.needsRehash) {
+    await db.customer.update({ where: { id: customer.id }, data: { passwordHash: hashPassword(password) } });
   }
   await setCustomerCookie(customer.id);
   return NextResponse.json({ customer: publicCustomer(customer) });

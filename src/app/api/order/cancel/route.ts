@@ -1,9 +1,13 @@
 import { NextResponse } from "next/server";
+import { clientIp, rateLimit } from "@/lib/platform/rate-limit";
 import { db } from "@/lib/db";
 import { formatMoney } from "@/lib/platform/money";
 import { customerCancelOrder } from "@/lib/platform/customer-cancel";
 
 export async function POST(request: Request) {
+  if (!rateLimit(`cancel:${clientIp(request)}`, 20, 15 * 60_000).ok) {
+    return NextResponse.json({ error: "Too many attempts. Try again in a few minutes." }, { status: 429 });
+  }
   const body = await request.json().catch(() => null);
   const ref = String(body?.ref || "").trim().toUpperCase();
   if (!ref) return NextResponse.json({ error: "Missing order reference." }, { status: 400 });
