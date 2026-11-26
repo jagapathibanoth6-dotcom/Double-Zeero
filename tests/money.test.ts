@@ -1,6 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { formatMoney, penceFromPrice, randomCode, slugify, uniqueRef } from "@/lib/platform/money";
+import { formatMoney, penceFromPrice, slugify } from "@/lib/platform/money";
+import { randomCode, uniqueRef } from "@/lib/platform/refs";
 
 test("formats pence as pounds", () => {
   assert.equal(formatMoney(1250), "£12.50");

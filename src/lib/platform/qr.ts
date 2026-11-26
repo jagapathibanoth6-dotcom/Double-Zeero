@@ -1,6 +1,6 @@
 import { randomBytes } from "crypto";
 import { db } from "@/lib/db";
-import { randomCode } from "@/lib/platform/money";
+import { randomCode } from "@/lib/platform/refs";
 
 export type QrRow = {
   id: string;

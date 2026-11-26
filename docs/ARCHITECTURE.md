@@ -81,7 +81,7 @@ The first booking/order with a new email creates an account and emails a tempora
 | Dashboard access | Middleware redirects signed-out visitors; every admin page/API verifies the session again on the server | `middleware.ts`, `admin.ts` |
 | Branch isolation | Staff actions check the record belongs to their current branch | `assertStaffBranch()` |
 | Passwords | scrypt with random salt; old SHA-256 customer hashes upgrade on sign-in | `password.ts` |
-| View/cancel links | References are random (`O-7KQ4M2XP`), not sequential | `uniqueRef()` in `money.ts` |
+| View/cancel links | References are random (`O-7KQ4M2XP`), not sequential | `uniqueRef()` in `refs.ts` |
 | Prices | Recalculated on the server | `priceBasket()` |
 | Brute force | In-memory rate limits on sign-in and cancel | `rate-limit.ts` |
 | Stripe | Webhook signature checked; return page re-checks the session with Stripe | `api/pay/webhook`, `stripe.ts` |

@@ -1,6 +1,7 @@
 import { db } from "@/lib/db";
 import type { LocationId } from "@/data/site";
-import { formatMoney, uniqueRef } from "@/lib/platform/money";
+import { formatMoney } from "@/lib/platform/money";
+import { uniqueRef } from "@/lib/platform/refs";
 import { sendCustomerMail, type MailBundle } from "@/lib/platform/mail-events";
 import { notify } from "@/lib/platform/notify";
 import { sendCancelMail } from "@/lib/platform/pay-mail";
