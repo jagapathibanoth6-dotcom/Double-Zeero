@@ -1,0 +1,72 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      DATABASE_URL: "file:./ci.db"
+      NEXT_PUBLIC_SITE_URL: "http://localhost:3000"
+      SESSION_SECRET: "ci-only-session-secret-0123456789abcdefghijklmnop"
+      ADMIN_EMAIL: "owner@ci.test"
+      ADMIN_PASSWORD: "ci-owner-password-123"
+      NEXT_TELEMETRY_DISABLED: "1"
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Settings file
+        run: |
+          {
+            echo "DATABASE_URL=$DATABASE_URL"
+            echo "NEXT_PUBLIC_SITE_URL=$NEXT_PUBLIC_SITE_URL"
+            echo "SESSION_SECRET=$SESSION_SECRET"
+            echo "ADMIN_EMAIL=$ADMIN_EMAIL"
+            echo "ADMIN_PASSWORD=$ADMIN_PASSWORD"
+          } > .env
+
+      - name: Type check
+        run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Unit tests
+        run: npm test
+
+      - name: Database
+        run: |
+          npx prisma db push --skip-generate
+          npm run db:seed
+
+      - name: Build
+        run: npm run build
+
+      - name: Start server
+        run: |
+          npm start > server.log 2>&1 &
+          for i in $(seq 1 60); do
+            curl -sf http://localhost:3000/robots.txt > /dev/null && exit 0
+            sleep 1
+          done
+          echo "Server did not start"; cat server.log; exit 1
+
+      - name: End-to-end smoke test
+        run: BASE_URL=http://localhost:3000 node scripts/smoke-test.mjs
+
+      - name: Server log
+        if: always()
+        run: tail -n 200 server.log || true

@@ -11,7 +11,8 @@
     "test": "tsx --test tests/*.test.ts",
     "db:seed": "tsx --env-file=.env prisma/seed.ts",
     "db:reset": "npx prisma db push --force-reset && npm run db:seed",
-    "staff:password": "tsx --env-file=.env prisma/set-staff-password.ts"
+    "staff:password": "tsx --env-file=.env prisma/set-staff-password.ts",
+    "test:smoke": "node scripts/smoke-test.mjs"
   },
   "prisma": {
     "seed": "tsx --env-file=.env prisma/seed.ts"
