@@ -82,36 +82,11 @@ async function rdFetch<T = Record<string, unknown>>(path: string, init?: Request
   return (json || {}) as T;
 }
 
-type AvailabilityResponse = {
-  TimeSlots?: { TimeSlot?: string; HasStandardAvailability?: boolean }[];
-};
-
 function slotClock(value: string) {
   const match = String(value).match(/T(\d{2}:\d{2})/);
   if (match) return match[1];
   if (/^\d{2}:\d{2}/.test(value)) return value.slice(0, 5);
   return value;
-}
-
-export async function searchResdiarySlots(locationId: LocationId, date: string, guests: number, visitType: VisitType) {
-  const microsite = encodeURIComponent(resdiaryMicrosite(locationId));
-  const data = await rdFetch<AvailabilityResponse>(`/api/ConsumerApi/v1/Restaurant/${microsite}/AvailabilitySearch`, {
-    method: "POST",
-    body: JSON.stringify({
-      VisitDate: `${date}T12:00:00`,
-      PartySize: guests,
-      ChannelCode: env("RESDIARY_CHANNEL") || "ONLINE",
-      AvailabilityType: visitType === "collection" ? "Takeaway" : "Reservation",
-    }),
-  });
-
-  const slots: string[] = [];
-  for (const row of data?.TimeSlots || []) {
-    if (row.HasStandardAvailability === false) continue;
-    const time = slotClock(row.TimeSlot || "");
-    if (time) slots.push(time);
-  }
-  return [...new Set(slots)];
 }
 
 function splitName(full: string) {

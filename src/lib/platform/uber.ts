@@ -2,12 +2,6 @@ import { db } from "@/lib/db";
 import { locations, type LocationId } from "@/data/site";
 import { getSettings } from "@/lib/platform/settings";
 
-export function uberHint(key?: string | null) {
-  const value = String(key || "");
-  if (value.length < 4) return "";
-  return `•••• ${value.slice(-4)}`;
-}
-
 export function uberReady(settings: { uberApiKey?: string | null; uberCustomerId?: string | null }) {
   return Boolean(String(settings.uberApiKey || "").trim() && String(settings.uberCustomerId || "").trim());
 }

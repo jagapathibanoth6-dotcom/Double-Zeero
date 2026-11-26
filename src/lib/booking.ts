@@ -1,26 +1,8 @@
 import { locations, type LocationId, type VisitType } from "@/data/site";
 
-export type Reservation = {
-  ref: string;
-  locationId: LocationId;
-  visitType: VisitType;
-  date: string;
-  time: string;
-  guests: number;
-  name: string;
-  email: string;
-  phone: string;
-  highchair: boolean;
-  notes: string;
-  createdAt: string;
-  status: "requested";
-};
-
 const SLOT_STEP = 15;
 const TABLE_LAST_SEATING = 90;
 const COLLECTION_LAST_SEATING = 30;
-const COVERS_PER_TABLE_SLOT = 16;
-const COVERS_PER_COLLECTION_SLOT = 10;
 
 export function toMinutes(hhmm: string) {
   const [h, m] = hhmm.split(":").map(Number);
@@ -113,40 +95,6 @@ export function generateSlots(
   }
 
   return slots;
-}
-
-export type Occupancy = Pick<Reservation, "locationId" | "date" | "time" | "visitType" | "guests">;
-
-export function slotCapacity(visitType: VisitType) {
-  return visitType === "collection" ? COVERS_PER_COLLECTION_SLOT : COVERS_PER_TABLE_SLOT;
-}
-
-export function availableSlots(
-  locationId: LocationId,
-  isoDate: string,
-  visitType: VisitType,
-  existing: Occupancy[],
-) {
-  const cap = slotCapacity(visitType);
-  return generateSlots(locationId, isoDate, visitType).filter((time) => {
-    const covers = existing
-      .filter(
-        (r) =>
-          r.locationId === locationId && r.date === isoDate && r.time === time && r.visitType === visitType,
-      )
-      .reduce((sum, r) => sum + r.guests, 0);
-    return covers < cap;
-  });
-}
-
-export function isValidSlot(locationId: LocationId, isoDate: string, visitType: VisitType, time: string) {
-  return generateSlots(locationId, isoDate, visitType).includes(time);
-}
-
-export function makeRef(locationId: LocationId) {
-  const prefix = locationId === "manchester" ? "MCR" : "CHL";
-  const n = Math.random().toString(36).slice(2, 6).toUpperCase();
-  return `DZ-${prefix}-${n}`;
 }
 
 export function formatBookingDate(iso: string) {

@@ -38,7 +38,8 @@ export async function quoteDelivery(locationId: LocationId, address: string) {
   };
 }
 
-async function nextOrderRef() {
+/** New unguessable order reference, e.g. `O-7KQ4M2XP`. */
+export async function nextOrderRef() {
   return uniqueRef("O", async (ref) => Boolean(await db.order.findUnique({ where: { ref }, select: { id: true } })));
 }
 
@@ -335,5 +336,3 @@ export async function queuePrintJobs(orderId: string, itemNames: string[]) {
   }
   await db.printJob.create({ data: { orderId, target: "RECEIPT", status: "QUEUED" } });
 }
-
-export const kitchenFlow = ["NEW", "ACCEPTED", "PREPARING", "READY", "COMPLETED"] as const;

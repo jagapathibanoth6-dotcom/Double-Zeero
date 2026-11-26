@@ -7,6 +7,13 @@ const nextConfig: NextConfig = {
   images: {
     formats: ["image/avif", "image/webp"],
   },
+  // Old booking links that may still be printed or bookmarked.
+  async redirects() {
+    return [
+      { source: "/book/manchester", destination: "/manchester/book", permanent: true },
+      { source: "/book/chorlton", destination: "/chorlton/book", permanent: true },
+    ];
+  },
 };
 
 export default nextConfig;

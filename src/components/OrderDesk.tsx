@@ -3,80 +3,23 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { locations, type LocationId } from "@/data/site";
-import { menuPhotoFor } from "@/data/menus";
 import { extraToppings, extrasPence, includedToppings, parsePizzaNotes, pizzaNotes, toppingGroups } from "@/data/pizza-options";
 import { formatBookingDate, todayISO } from "@/lib/booking";
 import { formatMoney } from "@/lib/platform/money";
 import { PaySheet } from "@/components/PaySheet";
 import { startStripeCheckout } from "@/lib/platform/stripe-client";
-
-type Product = {
-  id: string;
-  name: string;
-  description: string;
-  category: string;
-  photo: string;
-  available?: boolean;
-  prices: { id: string; pricePence: number; label: string; available?: boolean }[];
-};
-
-/** A product is orderable unless it is switched off or every one of its sizes is. */
-function isAvailable(product: Product) {
-  if (product.available === false) return false;
-  return product.prices.length === 0 || product.prices.some((price) => price.available !== false);
-}
-
-type BasketItem = {
-  lineId: string;
-  productId: string;
-  name: string;
-  quantity: number;
-  unitPence: number;
-  label: string;
-  notes?: string;
-};
-
-function newLineId() {
-  return `line-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-}
-
-function pizzaLineCopy(product: Product, notes?: string) {
-  const saved = parsePizzaNotes(notes || "");
-  const bits = [
-    saved.extras.length ? `Extra: ${saved.extras.join(", ")}` : "",
-    saved.removed.length ? `No: ${saved.removed.join(", ")}` : "",
-    saved.special,
-  ].filter(Boolean);
-  if (bits.length) return bits.join(". ");
-  const included = includedToppings(product.description);
-  return included.length ? included.join(", ") : product.description;
-}
-
-function canCustomise(product: Product) {
-  const category = String(product.category || "").toUpperCase();
-  return category === "PIZZAS" || category === "CALZONES" || category === "KIDS";
-}
-
-const categoryTitle: Record<string, string> = {
-  STARTERS: "Starters",
-  KIDS: "Kids",
-  PIZZAS: "Pizza",
-  CALZONES: "Calzone",
-  SIDES: "Sides",
-  DESSERTS: "Desserts",
-  DRINKS: "Drinks",
-  TOPPINGS: "Extra toppings",
-};
-
-const categoryOrder = ["STARTERS", "KIDS", "PIZZAS", "CALZONES", "SIDES", "DESSERTS", "DRINKS"];
-
-function productPhoto(product: Product) {
-  return product.photo || menuPhotoFor(product.name)?.photo || "";
-}
-
-function joinAddress(parts: { line1: string; line2: string; city: string; postcode: string }) {
-  return [parts.line1, parts.line2, parts.city, parts.postcode].map((part) => part.trim()).filter(Boolean).join(", ");
-}
+import {
+  type Product,
+  isAvailable,
+  type BasketItem,
+  newLineId,
+  pizzaLineCopy,
+  canCustomise,
+  categoryTitle,
+  categoryOrder,
+  productPhoto,
+  joinAddress,
+} from "@/components/order/order-desk-helpers";
 
 export type OrderDeskSeed = {
   locationId: LocationId;

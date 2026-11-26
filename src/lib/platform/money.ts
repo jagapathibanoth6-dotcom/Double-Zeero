@@ -40,8 +40,6 @@ export async function uniqueRef(prefix: string, exists: (ref: string) => Promise
 /** Every table sitting lasts 90 minutes, whatever the party size. */
 export const TABLE_SITTING_MIN = 90;
 
-export type DurationRule = { max: number; minutes: number };
-
 /**
  * Minutes a table is held for a booking. Currently fixed at 90 for all sizes;
  * `LocationSettings.durationJson` is stored for future per-size rules but not used yet.

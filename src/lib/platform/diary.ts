@@ -5,19 +5,11 @@ import { getSettings } from "@/lib/platform/settings";
 
 export const DIARY_SLOT = 30;
 export const BOOKING_SLOT = 15;
-export const DIARY_SLOT_PX = 56;
 
 export function shiftISO(iso: string, days: number) {
   const [y, m, d] = iso.split("-").map(Number);
   const dt = new Date(Date.UTC(y, m - 1, d + days));
   return dt.toISOString().slice(0, 10);
-}
-
-export function weekOf(iso: string) {
-  const [y, m, d] = iso.split("-").map(Number);
-  const dow = new Date(Date.UTC(y, m - 1, d)).getUTCDay();
-  const mondayOffset = dow === 0 ? -6 : 1 - dow;
-  return Array.from({ length: 7 }, (_, i) => shiftISO(iso, mondayOffset + i));
 }
 
 export function isISODate(value?: string | null): value is string {
@@ -56,13 +48,4 @@ export function diarySlots(open: string, close: string, step = DIARY_SLOT) {
 
 export function endTime(start: string, durationMin: number) {
   return fromMinutes(toMinutes(start) + durationMin);
-}
-
-export function cardTone(status: string, visitType: string, hasParty: boolean) {
-  if (visitType === "collection") return "collect";
-  if (hasParty) return "party";
-  if (status === "PENDING_DEPOSIT") return "pending";
-  if (status === "ENQUIRY") return "enquiry";
-  if (status === "CANCELLED" || status === "DECLINED") return "cancelled";
-  return "confirmed";
 }

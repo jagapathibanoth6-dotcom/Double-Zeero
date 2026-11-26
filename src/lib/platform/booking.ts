@@ -556,17 +556,3 @@ export async function createWalkIn(input: {
     },
   });
 }
-
-export function nearbyTimes(slots: { time: string; available: boolean }[], requested: string) {
-  if (!requested) return slots.filter((s) => s.available).slice(0, 6);
-  const idx = slots.findIndex((s) => s.time === requested);
-  const window = slots.slice(Math.max(0, idx - 3), idx + 4);
-  return window.filter((s) => s.time !== requested);
-}
-
-export function formatSlotLabel(time: string) {
-  const [h, m] = time.split(":").map(Number);
-  const suffix = h >= 12 ? "PM" : "AM";
-  const hour = ((h + 11) % 12) + 1;
-  return `${hour}:${String(m).padStart(2, "0")} ${suffix}`;
-}

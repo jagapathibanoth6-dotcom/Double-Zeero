@@ -46,13 +46,6 @@ export async function clearStaffCookie() {
   jar.delete(STAFF);
 }
 
-export async function getPreferredLocation(): Promise<LocationId | null> {
-  const jar = await cookies();
-  const value = jar.get(LOCATION)?.value;
-  if (value === "manchester" || value === "chorlton") return value;
-  return null;
-}
-
 export async function setPreferredLocation(locationId: LocationId) {
   const jar = await cookies();
   jar.set(LOCATION, locationId, { sameSite: "lax", path: "/", maxAge: 60 * 60 * 24 * 90 });
@@ -68,10 +61,4 @@ export async function getStaffBranch(): Promise<LocationId> {
 export async function setStaffBranch(locationId: LocationId) {
   const jar = await cookies();
   jar.set(BRANCH, locationId, { sameSite: "lax", path: "/", maxAge: 60 * 60 * 24 * 180 });
-}
-
-export async function upsertCustomer(input: { email: string; name: string; phone?: string }) {
-  const { issueCustomerAccess } = await import("@/lib/platform/customer-access");
-  const { customer } = await issueCustomerAccess(input);
-  return customer;
 }

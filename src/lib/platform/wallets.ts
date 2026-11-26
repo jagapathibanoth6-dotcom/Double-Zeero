@@ -33,10 +33,6 @@ export function detectDevice(): DeviceKind {
   return "laptop";
 }
 
-export function applePayNative() {
-  return false;
-}
-
 export function googlePayNative() {
   if (typeof navigator === "undefined") return false;
   const ua = navigator.userAgent;

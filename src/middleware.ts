@@ -12,12 +12,12 @@ export function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  const staff = request.cookies.get("dz-staff")?.value;
+  // The login page decides for itself whether the visitor is already signed in.
+  if (pathname === "/admin/login") return NextResponse.next();
 
-  if (pathname === "/admin/login") {
-    if (staff) return NextResponse.redirect(new URL("/admin", request.url));
-    return NextResponse.next();
-  }
+  // Quick gate only: this checks that a staff cookie exists. The cookie's
+  // signature and expiry are verified on the server by getStaff()/requireStaff().
+  const staff = request.cookies.get("dz-staff")?.value;
 
   if (!staff) {
     if (pathname.startsWith("/api/admin")) {
