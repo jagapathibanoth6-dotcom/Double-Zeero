@@ -4,8 +4,8 @@ import { useState } from "react";
 import { BackButton } from "@/components/BackButton";
 
 export function AdminLogin() {
-  const [email, setEmail] = useState("owner@doublezero.local");
-  const [password, setPassword] = useState("doublezero");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState("");
 
   async function onSubmit(e: React.FormEvent) {
