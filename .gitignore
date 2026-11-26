@@ -1,0 +1,27 @@
+# Dependencies
+node_modules/
+
+# Next.js build output
+.next/
+out/
+next-env.d.ts
+*.tsbuildinfo
+
+# Secrets — never commit real keys. Copy .env.example to .env instead.
+.env
+.env*.local
+
+# Local database and data
+prisma/dev.db
+prisma/dev.db-journal
+data/reservations.json
+
+# Photos uploaded through the admin dashboard
+public/uploads/*
+!public/uploads/.gitkeep
+
+# OS / editor / logs
+.DS_Store
+*.log
+.vscode/
+.idea/

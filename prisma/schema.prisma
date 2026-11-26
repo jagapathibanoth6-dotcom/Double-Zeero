@@ -1,0 +1,328 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model StaffUser {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  name         String
+  password     String
+  role         String
+  createdAt    DateTime @default(now())
+}
+
+model Customer {
+  id                 String   @id @default(cuid())
+  email              String   @unique
+  name               String
+  phone              String   @default("")
+  passwordHash       String   @default("")
+  mustChangePassword Boolean  @default(true)
+  createdAt          DateTime @default(now())
+  bookings           Booking[]
+  orders             Order[]
+  waitlist           WaitlistEntry[]
+  enquiries          Enquiry[]
+}
+
+model LocationSettings {
+  locationId              String  @id
+  maxOnlineGuests         Int     @default(8)
+  largeFrom               Int     @default(9)
+  maxAutoBooking          Int     @default(20)
+  enquiryFrom             Int     @default(21)
+  depositEnabled          Boolean @default(true)
+  depositType             String  @default("FIXED")
+  depositAmountPence      Int     @default(6000)
+  depositFrom             Int     @default(9)
+  preorderEnabled         Boolean @default(true)
+  preorderFrom            Int     @default(10)
+  preorderDeadlineHours   Int     @default(24)
+  waitlistEnabled         Boolean @default(true)
+  collectionMaxPerSlot    Int     @default(8)
+  collectionRemindMinutes Int     @default(15)
+  deliveryRemindMinutes   Int     @default(20)
+  sittingCapacity         Int     @default(40)
+  deliveryEnabled         Boolean @default(true)
+  deliveryFeePence        Int     @default(450)
+  deliveryRadiusKm        Float   @default(5)
+  uberApiKey              String  @default("")
+  uberCustomerId          String  @default("")
+  stripeSecretKey         String  @default("")
+  stripePublishableKey    String  @default("")
+  turnaroundMinutes       Int     @default(15)
+  durationJson            String  @default("[{\"max\":99,\"minutes\":90}]")
+  hoursJson               String  @default("")
+  collectionHoursJson     String  @default("")
+}
+
+model Table {
+  id         String  @id @default(cuid())
+  locationId String
+  code       String
+  seats      Int
+  x          Int     @default(0)
+  y          Int     @default(0)
+  active     Boolean @default(true)
+
+  @@unique([locationId, code])
+}
+
+model TableCombo {
+  id         String @id @default(cuid())
+  locationId String
+  codes      String
+  seats      Int
+}
+
+model Booking {
+  id          String   @id @default(cuid())
+  ref         String   @unique
+  locationId  String
+  date        String
+  time        String
+  guests      Int
+  durationMin Int
+  visitType   String   @default("table")
+  status      String   @default("CONFIRMED")
+  source      String   @default("website")
+  name        String
+  email       String
+  phone       String
+  notes       String   @default("")
+  highchair   Boolean  @default(false)
+  tableCodes  String   @default("")
+  customerId  String?
+  customer    Customer? @relation(fields: [customerId], references: [id])
+  party       Party?
+  payments    Payment[]
+  orders      Order[]
+  createdAt   DateTime @default(now())
+}
+
+model BookingGuest {
+  id        String @id @default(cuid())
+  partyId   String
+  party     Party  @relation(fields: [partyId], references: [id], onDelete: Cascade)
+  name      String
+  sortOrder Int    @default(0)
+  orders    Order[]
+}
+
+model Party {
+  id          String         @id @default(cuid())
+  bookingId   String         @unique
+  booking     Booking        @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  code        String         @unique
+  paymentMode String         @default("INDIVIDUAL")
+  deadlineAt  DateTime?
+  guests      BookingGuest[]
+  orders      Order[]
+  createdAt   DateTime       @default(now())
+}
+
+model Enquiry {
+  id                String    @id @default(cuid())
+  ref               String    @unique
+  locationId        String
+  date              String
+  preferredTime     String
+  guests            Int
+  name              String
+  email             String
+  phone             String
+  occasion          String    @default("")
+  foodRequirements  String    @default("")
+  message           String    @default("")
+  status            String    @default("NEW")
+  customerId        String?
+  customer          Customer? @relation(fields: [customerId], references: [id])
+  bookingId         String?
+  createdAt         DateTime  @default(now())
+}
+
+model WaitlistEntry {
+  id         String    @id @default(cuid())
+  locationId String
+  date       String
+  time       String
+  guests     Int
+  name       String
+  email      String
+  phone      String
+  status     String    @default("WAITING")
+  customerId String?
+  customer   Customer? @relation(fields: [customerId], references: [id])
+  createdAt  DateTime  @default(now())
+}
+
+model MenuProduct {
+  id          String      @id @default(cuid())
+  slug        String      @unique
+  name        String
+  description String      @default("")
+  category    String
+  photo       String      @default("")
+  dietary     String      @default("")
+  allergens   String      @default("")
+  available   Boolean     @default(true)
+  sortOrder   Int         @default(0)
+  note        String      @default("")
+  prices      MenuPrice[]
+  items       OrderItem[]
+}
+
+model MenuPrice {
+  id         String      @id @default(cuid())
+  productId  String
+  product    MenuProduct @relation(fields: [productId], references: [id], onDelete: Cascade)
+  locationId String
+  pricePence Int
+  label      String      @default("")
+  available  Boolean     @default(true)
+
+  @@unique([productId, locationId, label])
+}
+
+model Order {
+  id               String      @id @default(cuid())
+  ref              String      @unique
+  locationId       String
+  source           String
+  status           String      @default("NEW")
+  date             String      @default("")
+  time             String      @default("")
+  asap             Boolean     @default(false)
+  name             String      @default("")
+  email            String      @default("")
+  phone            String      @default("")
+  notes            String      @default("")
+  via              String      @default("")
+  address          String      @default("")
+  subtotalPence    Int         @default(0)
+  discountPence    Int         @default(0)
+  deliveryFeePence Int         @default(0)
+  totalPence       Int         @default(0)
+  customerId       String?
+  customer         Customer?   @relation(fields: [customerId], references: [id])
+  bookingId        String?
+  booking          Booking?    @relation(fields: [bookingId], references: [id])
+  partyId          String?
+  party            Party?      @relation(fields: [partyId], references: [id])
+  guestId          String?
+  guest            BookingGuest? @relation(fields: [guestId], references: [id])
+  items            OrderItem[]
+  payments         Payment[]
+  delivery         Delivery?
+  printJobs        PrintJob[]
+  createdAt        DateTime    @default(now())
+}
+
+model OrderItem {
+  id         String       @id @default(cuid())
+  orderId    String
+  order      Order        @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId  String?
+  product    MenuProduct? @relation(fields: [productId], references: [id])
+  name       String
+  quantity   Int          @default(1)
+  unitPence  Int
+  notes      String       @default("")
+}
+
+model Payment {
+  id          String   @id @default(cuid())
+  amountPence Int
+  kind        String   @default("ORDER")
+  status      String   @default("PAID")
+  provider    String   @default("DEMO")
+  providerRef String   @default("")
+  bookingId   String?
+  booking     Booking? @relation(fields: [bookingId], references: [id])
+  orderId     String?
+  order       Order?   @relation(fields: [orderId], references: [id])
+  refunds     Refund[]
+  createdAt   DateTime @default(now())
+}
+
+model Refund {
+  id          String   @id @default(cuid())
+  paymentId   String
+  payment     Payment  @relation(fields: [paymentId], references: [id])
+  amountPence Int
+  reason      String   @default("")
+  staffName   String   @default("demo")
+  createdAt   DateTime @default(now())
+}
+
+model Delivery {
+  id          String @id @default(cuid())
+  orderId     String @unique
+  order       Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  status      String @default("QUOTED")
+  quotePence  Int    @default(0)
+  etaMinutes  Int    @default(40)
+  courierName String @default("")
+  trackingUrl String @default("")
+}
+
+model Offer {
+  id              String    @id @default(cuid())
+  name            String
+  percentOff      Int       @default(0)
+  locationId      String    @default("")
+  orderType       String    @default("")
+  minSpendPence   Int       @default(0)
+  maxDiscountPence Int      @default(0)
+  expiresAt       DateTime?
+  active          Boolean   @default(true)
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  channel   String
+  template  String
+  to        String
+  payload   String   @default("")
+  createdAt DateTime @default(now())
+}
+
+model PrintJob {
+  id        String    @id @default(cuid())
+  orderId   String
+  order     Order     @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  target    String
+  status    String    @default("QUEUED")
+  createdAt DateTime  @default(now())
+  printedAt DateTime?
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  actor     String
+  action    String
+  entity    String
+  entityId  String
+  createdAt DateTime @default(now())
+}
+
+model QrCode {
+  id         String   @id @default(cuid())
+  locationId String
+  name       String
+  slug       String   @unique
+  createdAt  DateTime @default(now())
+}
+
+model GalleryPhoto {
+  id        String   @id @default(cuid())
+  src       String
+  alt       String   @default("")
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+}
