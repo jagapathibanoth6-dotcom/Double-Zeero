@@ -10,7 +10,7 @@ import { issueCustomerAccess } from "@/lib/platform/customer-access";
 import { locations } from "@/data/site";
 import { kitchenAsap, kitchenHours, timeWithinKitchen } from "@/lib/platform/hours";
 import { todayISO } from "@/lib/booking";
-import { extrasPence, parsePizzaNotes } from "@/data/pizza-options";
+import { priceLine, type BasketItem } from "@/lib/platform/pricing";
 import { cleanVia } from "@/lib/platform/via";
 import { handToUber } from "@/lib/platform/uber";
 
@@ -21,24 +21,11 @@ export async function ensureOrderVia() {
   }
 }
 
-export type BasketItem = {
-  productId?: string;
-  name: string;
-  quantity: number;
-  unitPence: number;
-  /** Size label, e.g. "12\"". Empty for single-price products. */
-  label?: string;
-  notes?: string;
-};
-
-const CUSTOMISABLE = new Set(["PIZZAS", "CALZONES", "KIDS"]);
+export type { BasketItem } from "@/lib/platform/pricing";
 
 /**
- * Re-price a customer's basket from the database.
- *
- * Prices sent by the browser are never trusted: each line must be a live menu
- * product at this restaurant, its size is matched by label (or, for older
- * clients, by price), and pizza extras are re-costed from the notes.
+ * Re-price a customer's basket from the database (see priceLine).
+ * Prices sent by the browser are never trusted.
  */
 export async function priceBasket(locationId: LocationId, items: BasketItem[]): Promise<BasketItem[]> {
   const ids = [...new Set(items.map((item) => item.productId).filter(Boolean))] as string[];
@@ -47,23 +34,7 @@ export async function priceBasket(locationId: LocationId, items: BasketItem[]): 
     include: { prices: { where: { locationId, available: true } } },
   });
   const byId = new Map(products.map((product) => [product.id, product]));
-
-  return items.map((item) => {
-    const quantity = Math.floor(Number(item.quantity));
-    if (!Number.isFinite(quantity) || quantity < 1 || quantity > 50) throw new Error(`Check the quantity for ${item.name}.`);
-    const product = item.productId ? byId.get(item.productId) : undefined;
-    if (!product || !product.prices.length) throw new Error(`${item.name} is unavailable.`);
-
-    const saved = parsePizzaNotes(item.notes || "");
-    const extras = CUSTOMISABLE.has(product.category.toUpperCase()) ? extrasPence(saved.extras, saved.removed) : 0;
-    const price =
-      product.prices.find((row) => item.label !== undefined && row.label === item.label) ||
-      product.prices.find((row) => row.pricePence + extras === Number(item.unitPence)) ||
-      (product.prices.length === 1 ? product.prices[0] : undefined);
-    if (!price) throw new Error(`The price of ${item.name} has changed. Please refresh the page.`);
-
-    return { ...item, quantity, label: price.label, unitPence: price.pricePence + extras };
-  });
+  return items.map((item) => priceLine(item, item.productId ? byId.get(item.productId) : undefined));
 }
 
 export async function quoteDelivery(locationId: LocationId, address: string) {

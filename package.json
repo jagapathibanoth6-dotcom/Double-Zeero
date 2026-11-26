@@ -7,6 +7,8 @@
     "build": "prisma generate && next build",
     "start": "next start",
     "lint": "eslint",
+    "typecheck": "tsc --noEmit",
+    "test": "tsx --test tests/*.test.ts",
     "db:seed": "tsx --env-file=.env prisma/seed.ts",
     "db:reset": "npx prisma db push --force-reset && npm run db:seed",
     "staff:password": "tsx --env-file=.env prisma/set-staff-password.ts"
