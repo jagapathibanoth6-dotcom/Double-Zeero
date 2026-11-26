@@ -72,7 +72,7 @@ export function TableDesk({
                     onBlur={(e) => {
                       const next = Number(e.target.value);
                       if (next > 0 && next !== table.seats) {
-                        post({ action: "save_table", id: table.id, ...table, seats: next });
+                        post({ action: "save_table", ...table, seats: next });
                       }
                     }}
                   />

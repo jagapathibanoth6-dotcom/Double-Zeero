@@ -1,6 +1,6 @@
 import { db } from "@/lib/db";
 import { locations, type LocationId, type VisitType } from "@/data/site";
-import { fromMinutes, generateSlots, londonParts, todayISO, toMinutes } from "@/lib/booking";
+import { generateSlots, londonParts, todayISO, toMinutes } from "@/lib/booking";
 import { hoursFromSettings } from "@/lib/platform/hours";
 import { durationForGuests, formatMoney, randomCode, uniqueRef } from "@/lib/platform/money";
 import type { MailBundle } from "@/lib/platform/mail-events";
@@ -83,12 +83,12 @@ export async function searchSlots(input: {
       settings,
       slots: all.map((time) => {
         const used = orders.filter((o) => o.time === time).length;
-        return { time, available: used < settings.collectionMaxPerSlot, used, cap: settings.collectionMaxPerSlot };
+        return { time, available: used < settings.collectionMaxPerSlot, tables: [] as string[], used, cap: settings.collectionMaxPerSlot };
       }),
     };
   }
 
-  const duration = durationForGuests(input.guests, settings.durationJson);
+  const duration = durationForGuests();
   const occupy = duration + settings.turnaroundMinutes;
   const bookings = await db.booking.findMany({
     where: {
@@ -247,13 +247,11 @@ export async function createBooking(input: {
   if (!input.force && !slot?.available) {
     throw new Error("That sitting is full.");
   }
-  const assignedTables =
-    input.tableCodes ||
-    ("tables" in (slot || {}) && Array.isArray(slot?.tables) ? slot.tables.join(",") : "");
+  const assignedTables = input.tableCodes || slot?.tables.join(",") || "";
 
   const access = await issueCustomerAccess({ email: input.email, name: input.name, phone: input.phone });
   const customer = access.customer;
-  const duration = durationForGuests(input.guests, settings.durationJson);
+  const duration = durationForGuests();
   const large = band === "LARGE" || (input.force && input.guests >= settings.largeFrom);
   const needsDeposit = large && settings.depositEnabled && input.guests >= settings.depositFrom;
   const depositAmount =
@@ -515,7 +513,7 @@ export async function createWalkIn(input: {
   if (!input.time) throw new Error("Choose a walk-in time.");
   const settings = await getSettings(input.locationId);
   const guests = Math.max(1, Number(input.guests || 2));
-  const duration = durationForGuests(guests, settings.durationJson);
+  const duration = durationForGuests();
   const search = await searchSlots({
     locationId: input.locationId,
     date: input.date,

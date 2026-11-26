@@ -59,7 +59,7 @@ export async function createQrCode(locationId: string, name: string) {
   };
   await db.$executeRaw`
     INSERT INTO QrCode (id, locationId, name, slug, createdAt)
-    VALUES (${row.id}, ${row.locationId}, ${row.name}, ${row.slug}, ${row.createdAt.toISOString()})
+    VALUES (${row.id}, ${row.locationId}, ${row.name}, ${row.slug}, ${new Date(row.createdAt).toISOString()})
   `;
   return row;
 }

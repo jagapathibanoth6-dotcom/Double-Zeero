@@ -202,7 +202,7 @@ export async function stripeAccountFacts(locationId: LocationId) {
       dashboardUrl: "https://dashboard.stripe.com/test/payments",
     };
   }
-  const account = await stripe.accounts.retrieve().catch(() => null);
+  const account = await stripe.accounts.retrieveCurrent().catch(() => null);
   const livemode = Boolean(String(settings.stripeSecretKey || "").startsWith("sk_live_"));
   return {
     ready: true,

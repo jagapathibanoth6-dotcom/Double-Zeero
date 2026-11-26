@@ -36,6 +36,8 @@ export function PaySheet({
   const [stage, setStage] = useState<"form" | "wallet" | "scan" | "done">("form");
   const [stripeReady, setStripeReady] = useState(false);
   const [mounted, setMounted] = useState(false);
+  // A fresh display code each time the sheet opens.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const code = useMemo(() => `DZ-${Math.random().toString(36).slice(2, 8).toUpperCase()}`, [open]);
 
   useEffect(() => {

@@ -20,12 +20,10 @@ type Product = {
   prices: { id: string; pricePence: number; label: string; available?: boolean }[];
 };
 
+/** A product is orderable unless it is switched off or every one of its sizes is. */
 function isAvailable(product: Product) {
   if (product.available === false) return false;
-  if (product.prices.some((price) => price.available === false) && !product.prices.some((price) => price.available !== false)) {
-    return false;
-  }
-  return product.available !== false;
+  return product.prices.length === 0 || product.prices.some((price) => price.available !== false);
 }
 
 type BasketItem = {
@@ -197,9 +195,11 @@ export function OrderDesk({ mode, seed }: { mode: "CLICK_COLLECT" | "DZ_DELIVERY
           setAsap(false);
           return;
         }
-        if (time && !(d.slots || []).some((slot: { time: string; available: boolean }) => slot.time === time && slot.available)) {
-          setTime("");
-        }
+        const openTimes = new Set(
+          (d.slots || []).filter((slot: { available: boolean }) => slot.available).map((slot: { time: string }) => slot.time),
+        );
+        // Clear the chosen time if it is no longer offered.
+        setTime((current) => (current && !openTimes.has(current) ? "" : current));
       });
   }, [locationId, date, mode]);
 
@@ -599,7 +599,7 @@ export function OrderDesk({ mode, seed }: { mode: "CLICK_COLLECT" | "DZ_DELIVERY
                           <button type="button" className="order-row-main" disabled={!isAvailable(item)} onClick={() => (canCustomise(item) ? openCustomise(item) : add(item))}>
                             {photo ? (
                               <div className="order-row-photo">
-                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                { }
                                 <img src={photo} alt="" />
                               </div>
                             ) : null}

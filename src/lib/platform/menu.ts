@@ -75,7 +75,7 @@ async function queryProducts(locationId: LocationId) {
   });
 }
 
-export async function liveProducts(locationId: LocationId, _all = false) {
+export async function liveProducts(locationId: LocationId) {
   await ensureToppings();
   return (await queryProducts(locationId)).map((product) => {
     if (product.photo) return product;
@@ -84,8 +84,9 @@ export async function liveProducts(locationId: LocationId, _all = false) {
   });
 }
 
-export function branchEnabled(prices: { available: boolean }[]) {
-  return prices.some((price) => price.available);
+/** True when at least one size/price of the product is switched on. */
+export function branchEnabled(prices: { available?: boolean }[]) {
+  return prices.some((price) => price.available !== false);
 }
 
 export function toMenuItem(product: {

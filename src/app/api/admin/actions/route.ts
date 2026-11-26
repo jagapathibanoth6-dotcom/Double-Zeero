@@ -8,7 +8,7 @@ import { notify } from "@/lib/platform/notify";
 import { todayISO } from "@/lib/booking";
 import { createQrCode, deleteQrCode, findQrById } from "@/lib/platform/qr";
 import { sendCancelMail } from "@/lib/platform/pay-mail";
-import { charge, refundAllOpen, refundAcross, refundPayment } from "@/lib/platform/payments";
+import { charge, refundAllOpen, refundAcross } from "@/lib/platform/payments";
 import { isPaid } from "@/lib/platform/pay";
 import { assertStaffBranch, revalidateHouse } from "@/lib/platform/admin";
 import { bustMenuCache } from "@/lib/platform/menu";

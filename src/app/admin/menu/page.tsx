@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
 
 export default async function AdminMenu() {
   const branch = await requireBranch();
-  const products = await liveProducts(branch, true);
+  const products = await liveProducts(branch);
 
   return (
     <div className="menu-admin">

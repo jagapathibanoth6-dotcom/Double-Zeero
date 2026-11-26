@@ -37,10 +37,15 @@ export async function uniqueRef(prefix: string, exists: (ref: string) => Promise
   throw new Error(`Could not generate a unique ${prefix} reference.`);
 }
 
+/** Every table sitting lasts 90 minutes, whatever the party size. */
 export const TABLE_SITTING_MIN = 90;
 
 export type DurationRule = { max: number; minutes: number };
 
-export function durationForGuests(_guests?: number, _json?: string) {
+/**
+ * Minutes a table is held for a booking. Currently fixed at 90 for all sizes;
+ * `LocationSettings.durationJson` is stored for future per-size rules but not used yet.
+ */
+export function durationForGuests() {
   return TABLE_SITTING_MIN;
 }

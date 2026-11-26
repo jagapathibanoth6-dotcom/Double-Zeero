@@ -1,10 +1,21 @@
 import path from "node:path";
 import { PrismaClient } from "@prisma/client";
 
-const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient; prismaUrl?: string };
+/**
+ * Shared Prisma client.
+ *
+ * In development Next.js reloads modules on every change, so the client is
+ * cached on `globalThis` to avoid opening a new database connection each time.
+ * A cached client is replaced if it was created before the latest
+ * `prisma generate` (it would be missing newer models).
+ */
 
+/** SQLite paths like `file:./dev.db` are resolved from the prisma/ folder, the same way the Prisma CLI does. */
 function databaseUrl() {
-  return `file:${path.join(process.cwd(), "prisma", "dev.db")}`;
+  const url = process.env.DATABASE_URL?.trim().replace(/^["']|["']$/g, "");
+  if (!url) return `file:${path.join(process.cwd(), "prisma", "dev.db")}`;
+  if (url.startsWith("file:./")) return `file:${path.join(process.cwd(), "prisma", url.slice("file:./".length))}`;
+  return url;
 }
 
 function createClient() {
@@ -14,18 +25,19 @@ function createClient() {
   });
 }
 
-function isFresh(client?: PrismaClient) {
-  return Boolean(client && typeof (client as { qrCode?: { findMany?: unknown } }).qrCode?.findMany === "function");
+function hasLatestModels(client: PrismaClient | undefined): client is PrismaClient {
+  return Boolean(client && typeof (client as unknown as { qrCode?: { findMany?: unknown } }).qrCode?.findMany === "function");
 }
 
+const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient; prismaUrl?: string };
 const url = databaseUrl();
-const cached = globalForPrisma.prisma;
-if (cached && (globalForPrisma.prismaUrl !== url || !isFresh(cached))) {
-  void cached.$disconnect();
+
+if (globalForPrisma.prisma && (globalForPrisma.prismaUrl !== url || !hasLatestModels(globalForPrisma.prisma))) {
+  void globalForPrisma.prisma.$disconnect();
   globalForPrisma.prisma = undefined;
 }
 
-export const db = isFresh(globalForPrisma.prisma) ? globalForPrisma.prisma : createClient();
+export const db: PrismaClient = hasLatestModels(globalForPrisma.prisma) ? globalForPrisma.prisma : createClient();
 
 if (process.env.NODE_ENV !== "production") {
   globalForPrisma.prisma = db;

@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { locations, type LocationId } from "@/data/site";
 import { formatBookingDate } from "@/lib/booking";
 import { formatMoney } from "@/lib/platform/money";
 import { PaySheet } from "@/components/PaySheet";
+import type { PartyView } from "@/lib/platform/party";
 
 type Guest = {
   id: string;
@@ -23,7 +24,7 @@ type Product = {
 };
 
 export function PartyDesk({ code }: { code: string }) {
-  const [party, setParty] = useState<any>(null);
+  const [party, setParty] = useState<PartyView | null>(null);
   const [progress, setProgress] = useState({ completed: 0, total: 0, reminderText: "" });
   const [guestId, setGuestId] = useState("");
   const [isHost, setIsHost] = useState(false);
@@ -33,18 +34,18 @@ export function PartyDesk({ code }: { code: string }) {
   const [message, setMessage] = useState("");
   const [payOpen, setPayOpen] = useState<"guest" | "host" | null>(null);
 
-  async function load() {
+  const load = useCallback(async () => {
     const res = await fetch(`/api/party/${code}`);
     const data = await res.json();
     if (!res.ok) return;
     setParty(data.party);
     setProgress(data.progress);
     setNames(data.party.guests.map((g: Guest) => g.name).join("\n"));
-  }
+  }, [code]);
 
   useEffect(() => {
     load();
-  }, [code]);
+  }, [load]);
 
   useEffect(() => {
     if (!party?.booking.locationId) return;
@@ -114,7 +115,7 @@ export function PartyDesk({ code }: { code: string }) {
           {formatBookingDate(party.booking.date)} · {party.booking.time}
         </h1>
         <p className="mt-3 text-mute">
-          {party.booking.guests} guests · Booking {party.booking.ref}
+          {party.booking.guests} guests · Booked by {party.booking.name}
         </p>
         {party.deadlineAt ? (
           <p className="mt-2 text-sm">Pre-order closes {new Date(party.deadlineAt).toLocaleString("en-GB")}.</p>
@@ -253,7 +254,6 @@ export function PartyDesk({ code }: { code: string }) {
             const guest = party.guests.find((row: Guest) => row.id === guestId);
             return [
               { label: "Name", value: payOpen === "host" ? party.booking.name || "Host" : guest?.name || "" },
-              { label: "Email", value: party.booking.email || "" },
               { label: "Order", value: payOpen === "host" ? "Party table" : "Party food" },
               { label: "Restaurant", value: loc ? `${loc.shortName} · ${loc.address}, ${loc.postcode}` : "" },
               { label: "When", value: `${formatBookingDate(party.booking.date)} · ${party.booking.time}` },

@@ -188,7 +188,7 @@ export function ConfirmedClient() {
             <p className="mt-2 break-all text-sm">{partyUrl}</p>
             {data.preorderRequired ? <p className="mt-3 text-sm text-mute">Pre-order is required for this booking.</p> : null}
             <div className="mt-5 flex flex-wrap gap-3">
-              <Button href={`/party/${data.party.code}`}>Open party page</Button>
+              <Button href={`/party/${data.party?.code}`}>Open party page</Button>
               <button
                 type="button"
                 className="btn btn-ghost"

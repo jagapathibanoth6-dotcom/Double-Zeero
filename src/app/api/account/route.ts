@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import type { LocationId } from "@/data/site";
 import { publicCustomer } from "@/lib/platform/customer-access";
+import { getAccountOverview } from "@/lib/platform/account";
 import { hashPassword, verifyPassword } from "@/lib/platform/password";
 import { clientIp, rateLimit } from "@/lib/platform/rate-limit";
 import { formatMoney } from "@/lib/platform/money";
@@ -12,37 +13,7 @@ import { clearCustomerCookie, getCustomer, setCustomerCookie } from "@/lib/platf
 export async function GET() {
   const customer = await getCustomer();
   if (!customer) return NextResponse.json({ customer: null });
-  await db.booking.updateMany({ where: { email: customer.email, customerId: null }, data: { customerId: customer.id } });
-  await db.order.updateMany({ where: { email: customer.email, customerId: null }, data: { customerId: customer.id } });
-  await db.enquiry.updateMany({ where: { email: customer.email, customerId: null }, data: { customerId: customer.id } });
-  await db.waitlistEntry.updateMany({ where: { email: customer.email, customerId: null }, data: { customerId: customer.id } });
-  const bookings = await db.booking.findMany({
-    where: { customerId: customer.id },
-    include: { party: true, payments: { include: { refunds: true } } },
-    orderBy: { createdAt: "desc" },
-  });
-  const orders = await db.order.findMany({
-    where: { customerId: customer.id },
-    include: { items: true, delivery: true, payments: { include: { refunds: true } } },
-    orderBy: { createdAt: "desc" },
-  });
-  const enquiries = await db.enquiry.findMany({
-    where: { customerId: customer.id },
-    orderBy: { createdAt: "desc" },
-  });
-  const waitlist = await db.waitlistEntry.findMany({
-    where: { customerId: customer.id },
-    orderBy: { createdAt: "desc" },
-  });
-  const offers = await db.offer.findMany({ where: { active: true } });
-  return NextResponse.json({
-    customer: publicCustomer(customer),
-    bookings,
-    orders,
-    enquiries,
-    waitlist,
-    offers,
-  });
+  return NextResponse.json(await getAccountOverview(customer));
 }
 
 export async function POST(request: Request) {

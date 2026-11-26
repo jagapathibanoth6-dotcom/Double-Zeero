@@ -7,6 +7,9 @@ import { formatBookingDate, todayISO } from "@/lib/booking";
 import { formatMoney } from "@/lib/platform/money";
 import { PayFacts, PayRefundBox } from "@/components/PayFacts";
 import { TrackPins, trackKindFrom } from "@/components/TrackPins";
+import type { AccountBooking, AccountOrder, AccountOverview } from "@/lib/platform/account";
+
+type AccountResponse = AccountOverview | { customer: null };
 
 function placeName(id?: string) {
   return locations[id as LocationId]?.shortName || id || "Double Zero";
@@ -55,7 +58,7 @@ function orderNeed(order: { source?: string; status?: string }) {
 }
 
 export function AccountDesk() {
-  const [data, setData] = useState<any>(null);
+  const [data, setData] = useState<AccountResponse | null>(null);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
@@ -63,7 +66,7 @@ export function AccountDesk() {
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
   const [detailsOpen, setDetailsOpen] = useState(false);
-  const [manageOrder, setManageOrder] = useState<any>(null);
+  const [manageOrder, setManageOrder] = useState<AccountOrder | null>(null);
   const [manageSource, setManageSource] = useState("CLICK_COLLECT");
   const [manageLocation, setManageLocation] = useState<LocationId>("manchester");
   const [manageAsap, setManageAsap] = useState(false);
@@ -71,7 +74,7 @@ export function AccountDesk() {
   const [manageTime, setManageTime] = useState("");
   const [manageAddress, setManageAddress] = useState("");
   const [manageNotes, setManageNotes] = useState("");
-  const [manageBooking, setManageBooking] = useState<any>(null);
+  const [manageBooking, setManageBooking] = useState<AccountBooking | null>(null);
   const [manageVisit, setManageVisit] = useState<"table" | "collection">("table");
   const [manageGuests, setManageGuests] = useState(2);
   const [manageHighchair, setManageHighchair] = useState(false);
@@ -130,7 +133,7 @@ export function AccountDesk() {
     setDetailsOpen(true);
   }
 
-  function openManageBooking(booking: any) {
+  function openManageBooking(booking: AccountBooking) {
     setError("");
     setManageOrder(null);
     setManageBooking(booking);
@@ -161,7 +164,7 @@ export function AccountDesk() {
     if (ok) setManageBooking(null);
   }
 
-  function openManage(order: any) {
+  function openManage(order: AccountOrder) {
     setError("");
     setManageBooking(null);
     setManageOrder(order);
@@ -208,7 +211,7 @@ export function AccountDesk() {
     return (
       <section className="account-login-screen">
         <aside className="account-login-visual">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
+          { }
           <img src="/images/food-1.jpg" alt="" />
           <div className="account-login-visual-shade" />
           <div className="account-login-visual-copy">
@@ -269,10 +272,10 @@ export function AccountDesk() {
     );
   }
 
-  const upcomingBookings = data.bookings.filter((b: any) => b.status !== "CANCELLED" && b.status !== "COMPLETED");
-  const pastBookings = data.bookings.filter((b: any) => b.status === "CANCELLED" || b.status === "COMPLETED");
-  const upcomingOrders = data.orders.filter((order: any) => !orderIsDone(order.status));
-  const doneOrders = data.orders.filter((order: any) => orderIsDone(order.status));
+  const upcomingBookings = data.bookings.filter((b) => b.status !== "CANCELLED" && b.status !== "COMPLETED");
+  const pastBookings = data.bookings.filter((b) => b.status === "CANCELLED" || b.status === "COMPLETED");
+  const upcomingOrders = data.orders.filter((order) => !orderIsDone(order.status));
+  const doneOrders = data.orders.filter((order) => orderIsDone(order.status));
 
   return (
     <div className="account-app">
@@ -308,7 +311,7 @@ export function AccountDesk() {
             <span>{data.offers.length || "None"}</span>
           </div>
           <ul className="account-offer-grid">
-            {data.offers.map((offer: any) => (
+            {data.offers.map((offer) => (
               <li key={offer.id} className="site-card account-offer-card">
                 <p className="display text-[0.62rem] tracking-[0.16em] text-ember">{offer.percentOff}% off</p>
                 <h3 className="serif mt-2 text-2xl leading-tight">{offer.name}</h3>
@@ -542,7 +545,7 @@ export function AccountDesk() {
             <span>{upcomingBookings.length + upcomingOrders.length || "None"}</span>
           </div>
           <ul className="account-grid">
-            {upcomingBookings.map((booking: any) => {
+            {upcomingBookings.map((booking) => {
               return (
                 <li key={booking.id} className="site-card account-card">
                   <div className="account-card-top">
@@ -596,7 +599,7 @@ export function AccountDesk() {
             <span>{pastBookings.length + doneOrders.length || "None"}</span>
           </div>
           <ul className="account-grid">
-            {pastBookings.map((booking: any) => (
+            {pastBookings.map((booking) => (
               <li key={booking.id} className="site-card account-card is-past">
                 <div className="account-card-top">
                   <p className="account-card-kicker">{booking.visitType === "collection" ? "Collection" : "Table"}</p>
@@ -635,7 +638,7 @@ export function AccountDesk() {
               <h2>Enquiries & waitlist</h2>
             </div>
             <ul className="account-grid">
-              {data.enquiries.map((enquiry: any) => (
+              {data.enquiries.map((enquiry) => (
                 <li key={enquiry.id} className="site-card account-card">
                   <div className="account-card-top">
                     <p className="account-card-kicker">Enquiry</p>
@@ -657,7 +660,7 @@ export function AccountDesk() {
                   </dl>
                 </li>
               ))}
-              {data.waitlist.map((entry: any) => (
+              {data.waitlist.map((entry) => (
                 <li key={entry.id} className="site-card account-card">
                   <div className="account-card-top">
                     <p className="account-card-kicker">Waitlist</p>
@@ -684,7 +687,7 @@ export function AccountDesk() {
   );
 }
 
-function OrderList({ orders, done = false, onManage }: { orders: any[]; done?: boolean; onManage?: (order: any) => void }) {
+function OrderList({ orders, done = false, onManage }: { orders: AccountOrder[]; done?: boolean; onManage?: (order: AccountOrder) => void }) {
   if (!orders.length) return null;
   return (
     <>
@@ -723,7 +726,7 @@ function OrderList({ orders, done = false, onManage }: { orders: any[]; done?: b
               <PayFacts duePence={order.totalPence} payments={order.payments} />
               <div className="is-wide">
                 <dt>Items</dt>
-                <dd>{order.items.map((item: any) => `${item.quantity} × ${item.name}`).join(", ") || "No items"}</dd>
+                <dd>{order.items.map((item) => `${item.quantity} × ${item.name}`).join(", ") || "No items"}</dd>
               </div>
             </dl>
             <div className="account-card-actions">
