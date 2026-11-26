@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { MENU_CATEGORIES } from "@/lib/platform/menu";
+import { MENU_CATEGORIES } from "@/data/menu-categories";
 
 type PriceRow = { label: string; price: string };
 

@@ -3,7 +3,7 @@ import { formatMoney, penceFromPrice, slugify } from "@/lib/platform/money";
 import type { LocationId } from "@/data/site";
 import { menuPhotoFor, type DietTag, type MenuItem } from "@/data/menus";
 
-export const MENU_CATEGORIES = ["STARTERS", "KIDS", "PIZZAS", "CALZONES", "SIDES", "DESSERTS", "DRINKS", "TOPPINGS"] as const;
+export { MENU_CATEGORIES } from "@/data/menu-categories";
 
 const defaultToppings = [
   {
