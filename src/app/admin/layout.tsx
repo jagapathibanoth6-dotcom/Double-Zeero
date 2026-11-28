@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import "./admin.css";
 import { AdminShell } from "@/components/admin/AdminShell";
 import { getStaff, getStaffBranch } from "@/lib/platform/session";
 

@@ -10,7 +10,7 @@ import { PayBadge } from "@/components/admin/PayBadge";
 import { PaymentBill } from "@/components/admin/PaymentBill";
 import { OrderItems } from "@/components/admin/OrderItems";
 import { isPaid, paySummary } from "@/lib/platform/pay";
-import { formatOrderWhen, nextOrderStatus, orderIsOpen, orderTypeLabel } from "@/lib/platform/order-label";
+import { formatOrderWhen, nextOrderStatus, orderIsOpen, orderTypeLabel, statusText, statusTone } from "@/lib/platform/order-label";
 import { KitchenRefresh } from "@/components/admin/KitchenRefresh";
 import { DeliveryPins, TrackPins, trackKindFrom } from "@/components/TrackPins";
 
@@ -48,7 +48,7 @@ export default async function AdminOrderRecord({ params }: { params: Promise<{ i
           </p>
         </div>
         <span>
-          <span className="admin-badge">{order.status.replace(/_/g, " ")}</span>
+          <span className={`admin-badge ${statusTone(order.status)}`}>{statusText(order.status)}</span>
           <PayBadge payments={order.payments} label={bill.label} />
         </span>
       </div>

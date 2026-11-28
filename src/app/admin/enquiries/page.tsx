@@ -2,6 +2,7 @@ import { db } from "@/lib/db";
 import { locations } from "@/data/site";
 import { requireBranch } from "@/lib/platform/admin";
 import { ConvertEnquiry } from "@/components/admin/ConvertEnquiry";
+import { statusText, statusTone } from "@/lib/platform/order-label";
 
 export const dynamic = "force-dynamic";
 
@@ -26,7 +27,9 @@ export default async function AdminEnquiries() {
               {e.name} · {e.email} · {e.phone}
             </p>
             <p className="mt-2 text-sm text-mute">{e.message || e.occasion}</p>
-            <p className="mt-2 text-sm">Status: {e.status}</p>
+            <p className="mt-2 text-sm">
+              <span className={`admin-badge ${statusTone(e.status)}`}>{statusText(e.status)}</span>
+            </p>
             {e.status === "NEW" ? <ConvertEnquiry id={e.id} time={e.preferredTime} /> : null}
           </li>
         ))}

@@ -14,7 +14,6 @@ const groups = [
     label: "Overview",
     items: [
       { href: "/admin", label: "Today", icon: "today" },
-      { href: "/admin/tables", label: "Tables", icon: "tables" },
     ],
   },
   {
@@ -84,6 +83,9 @@ export function AdminShell({
 }) {
   const pathname = usePathname();
   const loc = locations[branch];
+  const isActive = (href: string) => (href === "/admin" ? pathname === "/admin" : pathname.startsWith(href));
+  const currentGroup = groups.find((group) => group.items.some((item) => isActive(item.href)));
+  const current = currentGroup?.items.find((item) => isActive(item.href));
   const [menuOpen, setMenuOpen] = useState(false);
   const [orderAlerts, setOrderAlerts] = useState(0);
 
@@ -119,9 +121,14 @@ export function AdminShell({
               <div key={group.label} className="admin-nav-group">
                 <p className="admin-nav-label">{group.label}</p>
                 {group.items.map((item) => {
-                  const active = item.href === "/admin" ? pathname === "/admin" : pathname.startsWith(item.href);
+                  const active = isActive(item.href);
                   return (
-                    <Link key={item.href} href={item.href} className={`admin-nav-link ${active ? "is-active" : ""}`}>
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      className={`admin-nav-link ${active ? "is-active" : ""}`}
+                      aria-current={active ? "page" : undefined}
+                    >
                       <NavIcon name={item.icon} />
                       <span>{item.label}</span>
                       {item.href === "/admin/orders" && orderAlerts ? <em className="admin-nav-alert">{orderAlerts}</em> : null}
@@ -133,31 +140,55 @@ export function AdminShell({
             ))}
           </nav>
           <div className="admin-sidebar-foot">
-            <span className="admin-avatar">{staffName.slice(0, 1)}</span>
+            <span className="admin-avatar" aria-hidden="true">
+              {staffName.slice(0, 1).toUpperCase()}
+            </span>
             <div className="admin-staff">
               <p>{staffName}</p>
               <p>{staffRole}</p>
-              <form action="/api/admin/logout" method="post">
-                <button className="admin-signout" type="submit">
-                  Sign out
-                </button>
-              </form>
             </div>
+            <form action="/api/admin/logout" method="post">
+              <button className="admin-signout" type="submit" title="Sign out" aria-label="Sign out">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3M10 17l5-5-5-5M15 12H4" />
+                </svg>
+              </button>
+            </form>
           </div>
         </div>
       </aside>
       <div className="admin-main">
         <header className="admin-topbar">
-          <div>
-            <p className="admin-topbar-kicker">Live house</p>
-            <p className="admin-topbar-title">
-              {loc.shortName}
-              <span>{loc.headline}</span>
+          <div className="admin-topbar-left">
+            <p className="admin-crumbs">
+              <span>{loc.shortName}</span>
+              {currentGroup ? (
+                <>
+                  <span aria-hidden="true">/</span>
+                  <span>{currentGroup.label}</span>
+                </>
+              ) : null}
             </p>
+            <p className="admin-topbar-title">{current?.label || "Dashboard"}</p>
           </div>
-          <p className="admin-topbar-date">
-            {new Date().toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" })}
-          </p>
+          <div className="admin-topbar-right">
+            <span className="admin-live" title="Orders refresh automatically">
+              <i aria-hidden="true" />
+              Live
+            </span>
+            <p className="admin-topbar-date">
+              {new Date().toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" })}
+            </p>
+            <Link href="/" target="_blank" rel="noreferrer" className="admin-top-btn is-ghost">
+              View site
+            </Link>
+            <Link href="/admin/pos" className="admin-top-btn">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M12 5v14M5 12h14" />
+              </svg>
+              New order
+            </Link>
+          </div>
         </header>
         <div className="admin-content">
           {children}

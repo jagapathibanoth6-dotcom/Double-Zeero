@@ -9,8 +9,7 @@ import { requireBranch } from "@/lib/platform/admin";
 import { PayBadge } from "@/components/admin/PayBadge";
 import { paySummary } from "@/lib/platform/pay";
 import { DateNav } from "@/components/admin/DateNav";
-import { TableBoard } from "@/components/admin/TableBoard";
-import { orderTypeLabel } from "@/lib/platform/order-label";
+import { orderTypeLabel, statusText, statusTone } from "@/lib/platform/order-label";
 import { viaLabel } from "@/lib/platform/via";
 
 export const dynamic = "force-dynamic";
@@ -31,7 +30,7 @@ export default async function AdminHome({
   const nowMins = toMinutes(`${now.hour}:${now.minute}`);
   const loc = locations[branch];
 
-  const [bookings, orders, enquiries, waitlist, tables] = await Promise.all([
+  const [bookings, orders, enquiries, waitlist] = await Promise.all([
     db.booking.findMany({
       where: { locationId: branch, date, status: { notIn: ["CANCELLED", "DECLINED"] } },
       include: {
@@ -58,7 +57,6 @@ export default async function AdminHome({
       where: { locationId: branch, status: "WAITING", date },
       orderBy: { time: "asc" },
     }),
-    db.table.findMany({ where: { locationId: branch }, orderBy: [{ y: "asc" }, { x: "asc" }, { code: "asc" }] }),
   ]);
 
   const parties = bookings.filter((b) => b.party).length;
@@ -71,10 +69,6 @@ export default async function AdminHome({
     : [];
   const upcoming = bookings.filter((b) => !isToday || toMinutes(b.time) >= nowMins);
   const next = upcoming[0] || null;
-  const activeTables = tables.filter((table) => table.active);
-  const taken = new Set(
-    inHouse.flatMap((b) => b.tableCodes.split(",").map((code) => code.trim()).filter(Boolean)),
-  );
   const liveOrders = orders.filter((o) => o.status !== "PENDING_PAY");
   const kitchen = liveOrders.filter((o) => ["NEW", "ACCEPTED", "PREPARING", "READY"].includes(o.status));
   const revenue = liveOrders.reduce((sum, o) => sum + o.totalPence, 0);
@@ -88,7 +82,6 @@ export default async function AdminHome({
     { href: "/admin/parties", label: "Parties", value: parties, note: "large groups", tone: "wine" },
     { href: "/admin/enquiries", label: "Enquiries", value: enquiries.length, note: "need a reply", tone: "amber" },
     { href: "/admin/waitlist", label: "Waitlist", value: waitlist.length, note: "waiting this day", tone: "slate" },
-    { href: "/admin/tables", label: "Tables", value: Math.max(activeTables.length - taken.size, 0), note: `${taken.size} in use`, tone: "gold" },
   ];
 
   return (
@@ -104,8 +97,8 @@ export default async function AdminHome({
             <strong>{inHouse.length}</strong>
           </div>
           <div>
-            <span>Tables free</span>
-            <strong>{Math.max(activeTables.length - taken.size, 0)}</strong>
+            <span>Open orders</span>
+            <strong>{kitchen.length}</strong>
           </div>
           <div>
             <span>Next seating</span>
@@ -125,17 +118,6 @@ export default async function AdminHome({
       </div>
 
       <div className="today-board">
-        <section className="admin-panel today-tables">
-          <div className="today-panel-head">
-            <div>
-              <h2>Tables</h2>
-              <p>Guest assigned, food ordered, and status on the floor</p>
-            </div>
-            <Link href={`/admin/tables${isToday ? "" : `?date=${date}`}`}>Open floor</Link>
-          </div>
-          <TableBoard tables={tables} bookings={bookings} nowMins={nowMins} isToday={isToday} />
-        </section>
-
         <section className="admin-panel">
           <div className="today-panel-head">
             <div>
@@ -169,7 +151,7 @@ export default async function AdminHome({
                     </p>
                   </div>
                   <span>
-                    <span className="admin-badge">{live ? "In house" : b.status.replace(/_/g, " ")}</span>
+                    <span className={`admin-badge ${live ? "is-live" : statusTone(b.status)}`}>{live ? "In house" : statusText(b.status)}</span>
                     <PayBadge
                       payments={payments}
                       duePence={bill.duePence}
@@ -206,7 +188,7 @@ export default async function AdminHome({
                     </p>
                   </div>
                   <span>
-                    <span className="admin-badge">{o.status.replace(/_/g, " ")}</span>
+                    <span className={`admin-badge ${statusTone(o.status)}`}>{statusText(o.status)}</span>
                     <PayBadge payments={o.payments} label={paySummary(o.totalPence, o.payments).label} />
                   </span>
                 </Link>
@@ -237,7 +219,7 @@ export default async function AdminHome({
                     </p>
                   </div>
                   <span>
-                    <span className="admin-badge">{o.status.replace(/_/g, " ")}</span>
+                    <span className={`admin-badge ${statusTone(o.status)}`}>{statusText(o.status)}</span>
                     <PayBadge payments={o.payments} label={paySummary(o.totalPence, o.payments).label} />
                   </span>
                 </Link>
@@ -268,7 +250,7 @@ export default async function AdminHome({
                     </p>
                   </div>
                   <span>
-                    <span className="admin-badge">{formatMoney(o.totalPence)} · {o.status}</span>
+                    <span className={`admin-badge ${statusTone(o.status)}`}>{formatMoney(o.totalPence)} · {statusText(o.status)}</span>
                     <PayBadge
                       payments={o.payments}
                       label={`${paySummary(o.totalPence, o.payments).label} · ${formatMoney(paySummary(o.totalPence, o.payments).leftPence)} left`}

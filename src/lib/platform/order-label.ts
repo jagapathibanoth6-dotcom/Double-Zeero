@@ -58,3 +58,19 @@ export function trackLanes(kind: "CLICK_COLLECT" | "DZ_DELIVERY"): TrackLane[] {
 export function orderIsOpen(status?: string) {
   return status !== "COMPLETED" && status !== "CANCELLED";
 }
+
+/** Readable status, e.g. "PENDING_DEPOSIT" → "Pending deposit". */
+export function statusText(status?: string | null) {
+  const text = String(status || "").replace(/_/g, " ").toLowerCase().trim();
+  return text ? text[0].toUpperCase() + text.slice(1) : "";
+}
+
+/** Colour family for a booking or order status badge in the dashboard. */
+export function statusTone(status?: string | null) {
+  const value = String(status || "").toUpperCase();
+  if (["CANCELLED", "DECLINED"].includes(value)) return "is-bad";
+  if (["COMPLETED", "CONFIRMED", "READY", "SEATED", "CONVERTED", "BOOKED"].includes(value)) return "is-good";
+  if (value.startsWith("PENDING") || ["PREPARING", "WAITING", "OFFERED"].includes(value)) return "is-warn";
+  if (["NEW", "ACCEPTED", "DISPATCHED"].includes(value)) return "is-info";
+  return "";
+}

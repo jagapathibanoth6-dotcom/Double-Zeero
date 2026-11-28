@@ -23,20 +23,41 @@ export function AdminLogin() {
   }
 
   return (
-    <div className="grid min-h-screen place-items-center px-5">
+    <div className="admin-login">
       <BackButton />
-      <form onSubmit={onSubmit} className="w-full max-w-md space-y-4 border border-white/10 bg-[#161412] p-8">
-        <p className="wordmark text-sm text-gold">Double Zero</p>
-        <p className="display text-[0.68rem] tracking-[0.24em] text-cream/50">Management</p>
-        <h1 className="serif pt-2 text-4xl text-cream">Staff sign in</h1>
-        <p className="text-sm text-cream/55">Separate from the customer website.</p>
-        <label className="text-cream/70">Email</label>
-        <input value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="username" />
-        <label className="text-cream/70">Password</label>
-        <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} autoComplete="current-password" />
-        {error ? <p className="text-sm text-ember">{error}</p> : null}
+      <form onSubmit={onSubmit} className="admin-login-card">
+        <div className="admin-login-brand">
+          <span className="admin-mark">DZ</span>
+          <div>
+            <p className="admin-brand-name">Double Zero</p>
+            <p className="admin-brand-sub">Management</p>
+          </div>
+        </div>
+        <div>
+          <h1 className="admin-login-title">Staff sign in</h1>
+          <p className="admin-login-copy">Separate from the customer website.</p>
+        </div>
+        <label className="admin-field">
+          <span>Email</span>
+          <input value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="username" type="email" required />
+        </label>
+        <label className="admin-field">
+          <span>Password</span>
+          <input
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            autoComplete="current-password"
+            required
+          />
+        </label>
+        {error ? (
+          <p className="admin-login-error" role="alert">
+            {error}
+          </p>
+        ) : null}
         <button className="btn btn-ember w-full" type="submit">
-          Enter dashboard
+          Sign in
         </button>
       </form>
     </div>

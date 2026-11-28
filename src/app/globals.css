@@ -2961,10 +2961,6 @@ label {
 }
 
 .today-actions,
-.today-tables {
-  grid-column: 1 / -1;
-}
-
 .floor-setup {
   margin-top: 1.1rem;
 }

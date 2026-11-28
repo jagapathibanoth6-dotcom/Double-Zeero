@@ -6,7 +6,7 @@ import { ActionButton } from "@/components/admin/ActionButton";
 import { PayBadge } from "@/components/admin/PayBadge";
 import { type PaymentRow } from "@/lib/platform/pay";
 import { formatMoney } from "@/lib/platform/money";
-import { nextOrderStatus, orderIsOpen, orderKindClass, orderTypeLabel } from "@/lib/platform/order-label";
+import { nextOrderStatus, orderIsOpen, orderKindClass, orderTypeLabel, statusText, statusTone } from "@/lib/platform/order-label";
 import { RefundControls } from "@/components/admin/RefundControls";
 
 export type OrderCard = {
@@ -91,7 +91,7 @@ export function OrdersDesk({
                 <p className="order-board-items">{order.items || "No items"}</p>
               </Link>
               <div className="order-board-pay">
-                <span className="admin-badge">{order.status.replace(/_/g, " ")}</span>
+                <span className={`admin-badge ${statusTone(order.status)}`}>{statusText(order.status)}</span>
                 <PayBadge payments={order.payments} label={order.payLabel} />
                 <p>
                   Paid {formatMoney(order.paidPence)}
