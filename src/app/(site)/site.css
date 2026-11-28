@@ -1,0 +1,896 @@
+/*
+ * Double Zero — customer website design ("colourful modern").
+ *
+ * Loaded only by the (site) layout, after globals.css, and scoped to .dz-site,
+ * so the staff dashboard and printable posters are untouched. It matches the
+ * dashboard: warm white background, the orange → pink → purple gradient for
+ * actions and highlights, Syne headings, Outfit body text, rounded cards and
+ * pill buttons.
+ *
+ * Contents: tokens · type · buttons · cards & forms · header · hero ·
+ * journey cards · sections · ordering & booking · footer · account · mobile.
+ */
+
+/* ── Tokens ──────────────────────────────────────────────────────────────── */
+
+.dz-site {
+  --site-bg: #fffaf7;
+  --site-card: #ffffff;
+  --site-soft: #fff4ee;
+  --site-line: #f0e6e0;
+  --site-line-strong: #e2d4cc;
+  --site-ink: #1a1625;
+  --site-ink-2: #463f52;
+  --site-mute: #6f687a;
+  --site-faint: #a49daf;
+  --site-ember: #e8552d;
+  --site-ember-ink: #b23a17;
+  --site-gradient: linear-gradient(120deg, #ff7a3d 0%, #f43f5e 48%, #8b5cf6 100%);
+  --site-gradient-soft: linear-gradient(120deg, rgba(255, 122, 61, 0.12), rgba(244, 63, 94, 0.1) 48%, rgba(139, 92, 246, 0.12));
+  --site-ring: 0 0 0 3px rgba(232, 85, 45, 0.22);
+  --site-radius: 22px;
+  --site-radius-sm: 14px;
+  --site-shadow: 0 2px 6px rgba(26, 22, 37, 0.04), 0 12px 32px rgba(26, 22, 37, 0.06);
+  --site-shadow-lg: 0 24px 56px rgba(26, 22, 37, 0.14);
+
+  /* Remap the Tailwind theme inside the site so utility classes follow it. */
+  --color-ink: var(--site-ink);
+  --color-ink-soft: var(--site-ink-2);
+  --color-paper: var(--site-soft);
+  --color-ember: var(--site-ember);
+  --color-ember-hot: #cf4220;
+  --color-gold: #ffb27a;
+  --color-mute: var(--site-mute);
+  --color-line: var(--site-line);
+  --font-display: var(--font-outfit), "Outfit", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-syne), "Syne", ui-sans-serif, system-ui, sans-serif;
+
+  min-height: 100vh;
+  background: var(--site-bg);
+  color: var(--site-ink);
+  font-family: var(--font-outfit), "Outfit", ui-sans-serif, system-ui, sans-serif;
+  letter-spacing: 0;
+}
+
+.dz-site ::selection {
+  background: rgba(244, 63, 94, 0.18);
+}
+
+/* ── Type ────────────────────────────────────────────────────────────────── */
+
+/* Small labels ("kickers"): modern sans, lightly spaced. */
+.dz-site .display {
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: 0.1em !important;
+}
+
+/* Headings: Syne, bold and tight instead of the old serif. */
+.dz-site .serif {
+  font-family: var(--font-serif);
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  line-height: 1.08;
+}
+
+.dz-site .section-heading {
+  letter-spacing: -0.03em;
+}
+
+.dz-site .section-title > .display {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.35rem 0.8rem;
+  border-radius: 999px;
+  background: var(--site-gradient-soft);
+  color: var(--site-ember-ink) !important;
+  font-size: 0.72rem !important;
+}
+
+.dz-site .section-title > .display::before {
+  display: none;
+}
+
+.dz-site .text-ember,
+.dz-site .ember-link {
+  color: var(--site-ember);
+}
+
+.dz-site .ember-link:hover,
+.dz-site .ember-link:focus-visible {
+  color: #f43f5e;
+}
+
+.dz-site .gold-rule {
+  height: 3px;
+  border-radius: 999px;
+  background: var(--site-gradient);
+}
+
+/* ── Buttons ─────────────────────────────────────────────────────────────── */
+
+.dz-site .btn {
+  min-height: 2.9rem;
+  padding: 0 1.4rem;
+  border: 1px solid var(--site-line-strong);
+  border-radius: 999px;
+  background: var(--site-card);
+  color: var(--site-ink);
+  font-family: var(--font-display);
+  font-size: 0.92rem;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+  box-shadow: 0 2px 6px rgba(26, 22, 37, 0.06);
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease, filter 0.15s ease;
+}
+
+.dz-site .btn:hover {
+  transform: translateY(-1px);
+}
+
+.dz-site .btn:focus-visible {
+  outline: none;
+  box-shadow: var(--site-ring);
+}
+
+.dz-site .btn-sm {
+  min-height: 2.3rem;
+  padding: 0 1rem;
+  font-size: 0.82rem;
+  letter-spacing: 0;
+}
+
+.dz-site .btn-ember,
+.dz-site .btn-ember:hover,
+.dz-site .btn-ember:focus-visible {
+  border: 0;
+  background: var(--site-gradient);
+  color: #fff;
+  box-shadow: 0 10px 24px rgba(244, 63, 94, 0.28);
+}
+
+.dz-site .btn-ember:hover {
+  filter: saturate(1.1) brightness(0.97);
+  box-shadow: 0 14px 30px rgba(244, 63, 94, 0.34);
+}
+
+.dz-site .btn-ghost,
+.dz-site .btn-light {
+  border-color: var(--site-line-strong);
+  background: var(--site-card);
+  color: var(--site-ink);
+}
+
+.dz-site .btn-ghost:hover,
+.dz-site .btn-ghost:focus-visible,
+.dz-site .btn-light:hover {
+  border-color: var(--site-ink);
+  background: var(--site-ink);
+  color: #fff;
+}
+
+.dz-site .btn-ghost-light {
+  border-color: rgba(255, 255, 255, 0.55);
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  backdrop-filter: blur(8px);
+  box-shadow: none;
+}
+
+.dz-site .btn-ghost-light:hover,
+.dz-site .btn-ghost-light:focus-visible {
+  border-color: #fff;
+  background: #fff;
+  color: var(--site-ink);
+}
+
+.dz-site .btn:disabled {
+  opacity: 0.55;
+  transform: none;
+}
+
+/* ── Cards and forms ─────────────────────────────────────────────────────── */
+
+.dz-site .site-card,
+.dz-site .form-panel,
+.dz-site .room-card {
+  border: 1px solid var(--site-line);
+  border-radius: var(--site-radius);
+  background: var(--site-card);
+  box-shadow: var(--site-shadow);
+}
+
+.dz-site .card-hover {
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.dz-site .card-hover:hover,
+.dz-site .room-card:hover {
+  border-color: rgba(244, 63, 94, 0.25);
+  box-shadow: var(--site-shadow-lg);
+  transform: translateY(-3px);
+}
+
+.dz-site .site-page {
+  background:
+    radial-gradient(40rem 22rem at 100% 0%, rgba(139, 92, 246, 0.1), transparent 70%),
+    radial-gradient(36rem 24rem at 0% 30%, rgba(255, 122, 61, 0.1), transparent 70%),
+    var(--site-bg);
+  color: var(--site-ink);
+}
+
+.dz-site label {
+  font-family: var(--font-display);
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--site-ink-2);
+}
+
+.dz-site input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]),
+.dz-site select,
+.dz-site textarea {
+  border: 1px solid var(--site-line-strong);
+  border-radius: var(--site-radius-sm);
+  background-color: var(--site-card);
+  color: var(--site-ink);
+  font-family: var(--font-display);
+  letter-spacing: 0;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.dz-site input:focus,
+.dz-site select:focus,
+.dz-site textarea:focus {
+  outline: none;
+  border-color: var(--site-ember);
+  box-shadow: var(--site-ring);
+}
+
+.dz-site input[type="checkbox"],
+.dz-site input[type="radio"] {
+  accent-color: var(--site-ember);
+}
+
+/* Choice buttons: times, restaurants, booking options. */
+.dz-site .slot,
+.dz-site .branch-choice,
+.dz-site .book-choice {
+  border: 1px solid var(--site-line-strong);
+  border-radius: var(--site-radius-sm);
+  background: var(--site-card);
+  color: var(--site-ink);
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+  transition: border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
+}
+
+.dz-site .slot {
+  font-size: 0.9rem;
+}
+
+.dz-site .slot:hover,
+.dz-site .branch-choice:hover,
+.dz-site .book-choice:hover,
+.dz-site .book-choice:focus-visible {
+  border-color: rgba(244, 63, 94, 0.45);
+  background: var(--site-soft);
+  color: var(--site-ink);
+  box-shadow: 0 6px 16px rgba(244, 63, 94, 0.1);
+}
+
+.dz-site .slot[aria-pressed="true"],
+.dz-site .slot[aria-pressed="true"]:hover,
+.dz-site .branch-choice[aria-pressed="true"] {
+  border-color: transparent;
+  background: var(--site-gradient);
+  color: #fff;
+  box-shadow: 0 10px 22px rgba(244, 63, 94, 0.25);
+}
+
+.dz-site .branch-choice[aria-pressed="true"] .branch-choice-kicker,
+.dz-site .branch-choice[aria-pressed="true"] .branch-choice-tick,
+.dz-site .branch-choice[aria-pressed="true"] .branch-choice-meta {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.dz-site .menu-unavailable {
+  border-radius: 999px;
+  background: #fde8ec;
+  color: #be123c;
+}
+
+/* ── Header ──────────────────────────────────────────────────────────────── */
+
+.dz-site .site-header {
+  color: #fff;
+  background: transparent;
+  transition: background 0.25s ease, box-shadow 0.25s ease, color 0.25s ease;
+}
+
+/* No backdrop-filter here on purpose: it would make the header the containing
+   block for the fixed menu drawer inside it, squashing the drawer to the
+   header's height. A near-opaque white reads the same. */
+.dz-site .site-header.is-solid,
+.dz-site .site-header:has(.site-nav[open]) {
+  background: rgba(255, 255, 255, 0.97);
+  color: var(--site-ink);
+  box-shadow: 0 1px 0 var(--site-line), 0 8px 24px rgba(26, 22, 37, 0.05);
+}
+
+.dz-site .wordmark {
+  font-family: var(--font-serif);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: none;
+}
+
+.dz-site .site-header.is-solid .wordmark {
+  background: var(--site-gradient);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.dz-site .wordmark-sub {
+  font-family: var(--font-display);
+  font-size: 0.68rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: none;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.dz-site .site-header.is-solid .wordmark-sub {
+  color: var(--site-mute);
+}
+
+.dz-site .site-desktop-nav a {
+  position: relative;
+  padding: 0.35rem 0.1rem;
+  font-family: var(--font-display);
+  font-size: 0.86rem !important;
+  font-weight: 600;
+  letter-spacing: 0 !important;
+  text-transform: none;
+  color: rgba(255, 255, 255, 0.92) !important;
+}
+
+.dz-site .site-desktop-nav a.text-gold::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -0.15rem;
+  height: 3px;
+  border-radius: 999px;
+  background: var(--site-gradient);
+}
+
+.dz-site .site-desktop-nav a:hover {
+  color: #fff !important;
+}
+
+.dz-site .site-header.is-solid .site-desktop-nav a {
+  color: var(--site-ink-2) !important;
+}
+
+.dz-site .site-header.is-solid .site-desktop-nav a:hover,
+.dz-site .site-header.is-solid .site-desktop-nav a.text-gold {
+  color: var(--site-ink) !important;
+}
+
+.dz-site .site-header a.display {
+  font-size: 0.86rem !important;
+  letter-spacing: 0 !important;
+  text-transform: none;
+}
+
+.dz-site .site-header.is-solid a.display.text-cream {
+  color: var(--site-ink-2);
+}
+
+.dz-site .site-header .btn-ember {
+  min-height: 2.6rem;
+  padding: 0 1.15rem;
+  background: var(--site-gradient) !important;
+  border: 0 !important;
+  color: #fff !important;
+  box-shadow: 0 8px 20px rgba(244, 63, 94, 0.3) !important;
+}
+
+.dz-site .nav-lines {
+  color: currentColor;
+}
+
+.dz-site .site-drawer {
+  background: var(--site-card);
+  color: var(--site-ink);
+  box-shadow: -16px 0 40px rgba(26, 22, 37, 0.18);
+}
+
+.dz-site .site-menu-link {
+  border-bottom: 1px solid var(--site-line);
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--site-ink);
+}
+
+.dz-site .site-menu-link:hover {
+  color: var(--site-ember);
+}
+
+/* ── Hero (home) ─────────────────────────────────────────────────────────── */
+
+.dz-site .hero {
+  background: #120f1a;
+}
+
+.dz-site .hero img {
+  opacity: 0.92 !important;
+}
+
+.dz-site .hero-shade {
+  background:
+    linear-gradient(180deg, rgba(18, 15, 26, 0.3) 0%, rgba(18, 15, 26, 0.05) 35%, rgba(18, 15, 26, 0.7) 100%),
+    linear-gradient(90deg, rgba(18, 15, 26, 0.72) 0%, rgba(18, 15, 26, 0.35) 45%, rgba(18, 15, 26, 0) 75%),
+    linear-gradient(120deg, rgba(255, 122, 61, 0.12), rgba(139, 92, 246, 0.14));
+}
+
+.dz-site .hero-kicker {
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.14);
+  backdrop-filter: blur(10px);
+  color: #fff;
+  font-family: var(--font-display);
+  font-size: 0.76rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: none;
+}
+
+.dz-site .hero-title {
+  font-family: var(--font-serif);
+  font-size: clamp(2.2rem, 4.2vw, 3.7rem);
+  font-weight: 700;
+  line-height: 1.02;
+  letter-spacing: -0.035em;
+  text-transform: none;
+}
+
+.dz-site .hero-title em {
+  font-style: normal;
+  background: linear-gradient(120deg, #ffb27a 0%, #ff6b8b 50%, #c4a6ff 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.dz-site .hero-lede {
+  font-family: var(--font-display);
+  font-size: 1.12rem;
+  line-height: 1.55;
+  color: rgba(255, 255, 255, 0.86);
+}
+
+.dz-site .hero-place {
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: var(--site-radius-sm);
+  background: rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(12px);
+  color: rgba(255, 255, 255, 0.86);
+}
+
+.dz-site .hero-place:hover,
+.dz-site .hero-place:focus-visible {
+  border-color: rgba(255, 255, 255, 0.6);
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+}
+
+.dz-site .social-rail a {
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.14);
+  color: #fff;
+}
+
+.dz-site .social-rail a:hover,
+.dz-site .social-rail a:focus-visible {
+  border-color: transparent;
+  background: var(--site-gradient);
+  color: #fff;
+}
+
+/* ── Journey cards (Book a table / Click & collect) ─────────────────────── */
+
+.dz-site .journey-card {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.14);
+  backdrop-filter: blur(14px);
+  color: #fff;
+  transition: transform 0.2s ease, background 0.2s ease, border-color 0.2s ease;
+}
+
+.dz-site .journey-card::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: var(--site-gradient);
+}
+
+.dz-site .journey-card:hover,
+.dz-site .journey-card:focus-visible {
+  border-color: rgba(255, 255, 255, 0.55);
+  background: rgba(255, 255, 255, 0.22);
+  transform: translateY(-2px);
+}
+
+.dz-site .journey-card em {
+  font-family: var(--font-display);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: #ffc49b;
+}
+
+.dz-site .journey-card strong {
+  font-family: var(--font-serif);
+  font-size: 1.3rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.dz-site .journey-card span {
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.dz-site .journey-choices.is-paper .journey-card,
+.dz-site .journey-choices.is-warm .journey-card {
+  border: 1px solid var(--site-line);
+  background: var(--site-card);
+  color: var(--site-ink);
+  backdrop-filter: none;
+  box-shadow: var(--site-shadow);
+}
+
+.dz-site .journey-choices.is-paper .journey-card em,
+.dz-site .journey-choices.is-warm .journey-card em {
+  color: var(--site-ember);
+}
+
+.dz-site .journey-choices.is-paper .journey-card span,
+.dz-site .journey-choices.is-warm .journey-card span {
+  color: var(--site-mute);
+}
+
+.dz-site .journey-choices.is-paper .journey-card:hover,
+.dz-site .journey-choices.is-warm .journey-card:hover {
+  border-color: rgba(244, 63, 94, 0.3);
+  background: var(--site-card);
+  box-shadow: var(--site-shadow-lg);
+}
+
+.dz-site .journey-call {
+  font-family: var(--font-display);
+  font-size: 0.86rem;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.dz-site .journey-call:hover {
+  color: #ffc49b;
+}
+
+/* ── Restaurant pages ────────────────────────────────────────────────────── */
+
+.dz-site .location-hero {
+  background: #120f1a;
+}
+
+.dz-site .location-subnav {
+  border-bottom: 1px solid var(--site-line);
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: saturate(1.4) blur(14px);
+}
+
+.dz-site .location-subnav a {
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.dz-site .room-card-dishes li {
+  border-top: 1px solid var(--site-line);
+}
+
+/* Restaurant cards on "Book a table": keep the photo area filled even when
+   no photo is set, instead of an empty white block. */
+.dz-site .room-card-photo {
+  background:
+    radial-gradient(18rem 10rem at 20% 20%, rgba(255, 255, 255, 0.28), transparent 70%),
+    var(--site-gradient);
+}
+
+/* ── Ordering and booking ────────────────────────────────────────────────── */
+
+.dz-site .order-pay {
+  border-radius: var(--site-radius);
+}
+
+.dz-site .pizza-chip {
+  border-radius: 999px;
+}
+
+.dz-site .pay-sheet-card {
+  border: 0;
+  border-radius: 24px;
+  background: var(--site-card);
+  box-shadow: var(--site-shadow-lg);
+}
+
+.dz-site .pay-methods button {
+  border-radius: var(--site-radius-sm);
+}
+
+.dz-site .pay-methods button.is-on {
+  border-color: transparent;
+  background: var(--site-gradient);
+  color: #fff;
+}
+
+.dz-site .book-confirm {
+  border-radius: var(--site-radius);
+}
+
+/* ── Footer ──────────────────────────────────────────────────────────────── */
+
+.dz-site .dz-end {
+  position: relative;
+  border-top: 0;
+  background:
+    radial-gradient(40rem 18rem at 0% 0%, rgba(255, 122, 61, 0.18), transparent 70%),
+    radial-gradient(40rem 18rem at 100% 100%, rgba(139, 92, 246, 0.2), transparent 70%),
+    #161320;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.dz-site .dz-end::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 4px;
+  background: var(--site-gradient);
+}
+
+.dz-site .dz-end-name {
+  font-family: var(--font-serif);
+  font-size: 1.35rem;
+  font-weight: 700;
+  letter-spacing: 0;
+  text-transform: none;
+  background: linear-gradient(120deg, #ffb27a 0%, #ff6b8b 50%, #c4a6ff 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.dz-site .dz-end-label {
+  font-family: var(--font-display);
+  font-size: 0.72rem !important;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: #ffb27a;
+}
+
+.dz-site .dz-end-grid a {
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.dz-site .dz-end-grid a:hover {
+  color: #fff;
+}
+
+.dz-site .dz-end-legal {
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.45);
+}
+
+/* ── Account ─────────────────────────────────────────────────────────────── */
+
+.dz-site .account-login-screen {
+  background:
+    radial-gradient(40rem 22rem at 100% 0%, rgba(139, 92, 246, 0.1), transparent 70%),
+    var(--site-bg);
+}
+
+.dz-site .account-login-form {
+  border: 1px solid var(--site-line);
+  border-radius: 24px;
+  background: var(--site-card);
+  box-shadow: var(--site-shadow-lg);
+}
+
+.dz-site .account-login-visual-shade {
+  background:
+    linear-gradient(180deg, rgba(18, 15, 26, 0.1) 10%, rgba(18, 15, 26, 0.82) 100%),
+    linear-gradient(120deg, rgba(255, 122, 61, 0.2), rgba(139, 92, 246, 0.22));
+}
+
+.dz-site .account-hero {
+  background:
+    radial-gradient(40rem 20rem at 0% 0%, rgba(255, 122, 61, 0.35), transparent 70%),
+    radial-gradient(40rem 20rem at 100% 100%, rgba(139, 92, 246, 0.35), transparent 70%),
+    #161320;
+}
+
+.dz-site .account-card,
+.dz-site .account-offer-card,
+.dz-site .account-dialog-card {
+  border-radius: var(--site-radius);
+}
+
+/* ── Mobile action bar ───────────────────────────────────────────────────── */
+
+@media (max-width: 1099px) {
+  .dz-site .site-actions {
+    border-bottom: 1px solid var(--site-line) !important;
+    background: rgba(255, 255, 255, 0.94) !important;
+    backdrop-filter: blur(12px);
+  }
+
+  .dz-site .site-actions a,
+  .dz-site .site-actions a.is-off {
+    color: var(--site-ink-2) !important;
+    font-family: var(--font-display);
+    font-size: 0.82rem;
+    font-weight: 600;
+    letter-spacing: 0;
+    text-transform: none;
+  }
+
+  .dz-site .site-actions a.is-on {
+    color: var(--site-ember-ink) !important;
+    box-shadow: inset 0 -3px 0 #f43f5e !important;
+  }
+
+  .dz-site .site-header .btn-ember,
+  .dz-site .hero-actions .btn-ember {
+    background: var(--site-gradient) !important;
+    border: 0 !important;
+    color: #fff !important;
+  }
+
+  .dz-site .wordmark {
+    letter-spacing: 0.02em;
+  }
+}
+
+/* ── Click & collect menu sections ───────────────────────────────────────── */
+
+.dz-site .order-section {
+  border-radius: var(--site-radius);
+  border-color: var(--site-line);
+}
+
+.dz-site .order-section-head {
+  background: var(--site-gradient-soft), var(--site-card);
+  color: var(--site-ink);
+  border-bottom: 1px solid var(--site-line);
+}
+
+.dz-site .order-section-kicker {
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: var(--site-ember-ink);
+}
+
+.dz-site .order-section-title {
+  font-family: var(--font-serif);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--site-ink);
+}
+
+.dz-site .order-section-count {
+  border: 0;
+  background: var(--site-gradient);
+  color: #fff;
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.dz-site .order-item.is-picked {
+  background: var(--site-soft);
+}
+
+.dz-site .order-row-photo {
+  border-radius: 14px;
+  background: var(--site-soft);
+}
+
+.dz-site .order-row-name {
+  font-family: var(--font-serif);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.dz-site .order-qty {
+  border-color: var(--site-line-strong);
+}
+
+.dz-site .order-qty-label {
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+/* Sentence-case form labels everywhere on the site. */
+.dz-site .account-field span,
+.dz-site .account-dialog-card label,
+.dz-site .account-dialog-card legend,
+.dz-site .pizza-options-label {
+  font-family: var(--font-display);
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--site-ink-2);
+}
+
+.dz-site .account-field input,
+.dz-site .account-dialog-card input,
+.dz-site .account-dialog-card textarea {
+  border-radius: var(--site-radius-sm);
+}
+
+.dz-site .account-kicker,
+.dz-site .account-card-kicker {
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--site-ember-ink);
+}
+
+.dz-site .account-kicker.is-light {
+  color: #ffc49b;
+}
+
+/* Menu icon follows the header: white over the hero, ink on the white bar. */
+.dz-site .site-header .nav-lines {
+  color: #fff;
+  opacity: 1;
+}
+
+.dz-site .site-header.is-solid .nav-lines,
+.dz-site .site-header:has(.site-nav[open]) .nav-lines {
+  color: var(--site-ink);
+}
+
+.dz-site .nav-lines path {
+  stroke: currentColor;
+}
