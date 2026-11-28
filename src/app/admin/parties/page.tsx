@@ -6,6 +6,7 @@ import { PayBadge } from "@/components/admin/PayBadge";
 import { ActionButton } from "@/components/admin/ActionButton";
 import { PartyAdmin } from "@/components/admin/PartyAdmin";
 import { RefundControls } from "@/components/admin/RefundControls";
+import { statusText } from "@/lib/platform/order-label";
 
 export const dynamic = "force-dynamic";
 
@@ -38,7 +39,7 @@ export default async function AdminParties() {
                 {p.booking.guests} guests · {p.booking.date} {p.booking.time}
               </p>
               <p className="mt-1 text-sm text-mute">
-                Deposit {p.booking.status} · <PayBadge payments={p.booking.payments} /> · Pre-order {done}/{p.booking.guests}
+                Deposit {statusText(p.booking.status).toLowerCase()} · <PayBadge payments={p.booking.payments} /> · Pre-order {done}/{p.booking.guests}
               </p>
               <div className="mt-3 flex flex-wrap gap-3">
                 <Link href={`/admin/bookings/${p.booking.id}`} className="ember-link text-ember">

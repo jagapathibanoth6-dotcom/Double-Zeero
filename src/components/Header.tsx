@@ -42,7 +42,6 @@ export function Header() {
     { href: current ? locations[current].menuPath : "/menu", label: "Menu" },
     { href: current ? locations[current].bookingPath : "/book", label: "Book a Table" },
     { href: "/order/collect?via=Website", label: "Click & collect" },
-    { href: "/order/delivery?via=Website", label: "Home delivery" },
     { href: "/locations", label: "Locations" },
     { href: "/about", label: "About" },
     { href: "/offers", label: "Offers" },
@@ -187,9 +186,9 @@ export function Header() {
           <details ref={menuRef} className="site-nav" onToggle={(event) => setMenuOpen(event.currentTarget.open)}>
             <summary className="nav-lines" aria-label={menuOpen ? "Close menu" : "Open menu"}>
               <svg viewBox="0 0 24 16" width="24" height="16" fill="none" aria-hidden="true">
-                <path d="M1 1.5h22" stroke="#fff8ef" strokeWidth="2" strokeLinecap="square" />
-                <path d="M1 8h22" stroke="#fff8ef" strokeWidth="2" strokeLinecap="square" />
-                <path d="M1 14.5h22" stroke="#fff8ef" strokeWidth="2" strokeLinecap="square" />
+                <path d="M1 1.5h22" stroke="currentColor" strokeWidth="2" strokeLinecap="square" />
+                <path d="M1 8h22" stroke="currentColor" strokeWidth="2" strokeLinecap="square" />
+                <path d="M1 14.5h22" stroke="currentColor" strokeWidth="2" strokeLinecap="square" />
               </svg>
             </summary>
             <button

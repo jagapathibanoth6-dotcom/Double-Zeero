@@ -87,7 +87,7 @@ async function main() {
   console.log("Public pages");
   const pages = [
     "/", "/menu", "/manchester", "/chorlton", "/manchester/menu", "/chorlton/menu",
-    "/manchester/book", "/chorlton/book", "/book", "/order", "/order/collect", "/order/delivery",
+    "/manchester/book", "/chorlton/book", "/book", "/order/collect",
     "/locations", "/contact", "/about", "/gallery", "/offers", "/privacy", "/join", "/account", "/login",
     "/admin/login", "/robots.txt",
   ];
@@ -96,6 +96,14 @@ async function main() {
       const res = await http(page);
       assert(res.status === 200, `got ${res.status}`);
       assert(!/Application error|Internal Server Error/i.test(res.text), "page shows an error");
+    });
+  }
+  // Ordering is click & collect only: the old order and delivery links send people there.
+  for (const page of ["/order", "/order/delivery"]) {
+    await check(`GET ${page} → click & collect`, async () => {
+      const res = await http(page);
+      assert(res.status >= 300 && res.status < 400, `got ${res.status}`);
+      assert(res.headers.get("location")?.includes("/order/collect"), `to ${res.headers.get("location")}`);
     });
   }
   await check("Old /book/manchester link redirects", async () => {
@@ -156,8 +164,8 @@ async function main() {
 
   console.log("\nDashboard pages (signed in)");
   const adminPages = [
-    "/admin", "/admin/bookings", "/admin/orders", "/admin/collect", "/admin/delivery", "/admin/kitchen",
-    "/admin/pos", "/admin/tables", "/admin/menu", "/admin/menu/new", "/admin/customers", "/admin/enquiries",
+    "/admin", "/admin/bookings", "/admin/orders", "/admin/collect", "/admin/kitchen",
+    "/admin/tables", "/admin/menu", "/admin/menu/new", "/admin/customers", "/admin/enquiries",
     "/admin/waitlist", "/admin/parties", "/admin/payments", "/admin/gallery", "/admin/settings",
   ];
   for (const page of adminPages) {
@@ -246,6 +254,13 @@ async function main() {
     const res = await http("/api/order", {
       method: "POST",
       body: { locationId: "manchester", source: "POS", items: [{ productId: pizza.id, name: pizza.name, quantity: 1, unitPence: 1 }], name: "X", email: uniqueEmail("pos") },
+    });
+    assert(res.status === 400, `got ${res.status}`);
+  });
+  await check("Website can't create home delivery orders", async () => {
+    const res = await http("/api/order", {
+      method: "POST",
+      body: { locationId: "manchester", source: "DZ_DELIVERY", items: [{ productId: pizza.id, name: pizza.name, quantity: 1, unitPence: 1 }], name: "X", email: uniqueEmail("delivery"), address: "1 Test St, M1 1AA" },
     });
     assert(res.status === 400, `got ${res.status}`);
   });

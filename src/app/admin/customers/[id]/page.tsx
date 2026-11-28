@@ -10,6 +10,7 @@ import { PayBadge } from "@/components/admin/PayBadge";
 import { paySummary } from "@/lib/platform/pay";
 import { BranchRecordLink } from "@/components/admin/BranchRecordLink";
 import { RefundControls } from "@/components/admin/RefundControls";
+import { statusText } from "@/lib/platform/order-label";
 
 export const dynamic = "force-dynamic";
 
@@ -147,7 +148,7 @@ export default async function AdminCustomerRecord({ params }: { params: Promise<
                 currentBranch={branch}
                 className="record-line is-link"
               >
-                {o.ref} · {orderLabel(o.source)} · {formatMoney(o.totalPence)} · {o.status}{" "}
+                {o.ref} · {orderLabel(o.source)} · {formatMoney(o.totalPence)} · {statusText(o.status)}{" "}
                 <PayBadge payments={o.payments} label={paySummary(o.totalPence, o.payments).label} />
                 {paySummary(o.totalPence, o.payments).refundedPence
                   ? ` · refunded ${formatMoney(paySummary(o.totalPence, o.payments).refundedPence)}`
@@ -166,7 +167,7 @@ export default async function AdminCustomerRecord({ params }: { params: Promise<
           <h2>Waitlist</h2>
           {customer.waitlist.map((w) => (
             <p key={w.id} className="record-line">
-              {locations[w.locationId as keyof typeof locations]?.shortName || w.locationId} · {w.date} {w.time} · {w.guests} pax · {w.status}
+              {locations[w.locationId as keyof typeof locations]?.shortName || w.locationId} · {w.date} {w.time} · {w.guests} pax · {statusText(w.status)}
             </p>
           ))}
           {!customer.waitlist.length ? <p className="today-empty">None.</p> : null}
@@ -176,7 +177,7 @@ export default async function AdminCustomerRecord({ params }: { params: Promise<
           <h2>Enquiries</h2>
           {customer.enquiries.map((e) => (
             <p key={e.id} className="record-line">
-              {locations[e.locationId as keyof typeof locations]?.shortName || e.locationId} · {e.ref} · {e.date} {e.preferredTime} · {e.guests} · {e.status}
+              {locations[e.locationId as keyof typeof locations]?.shortName || e.locationId} · {e.ref} · {e.date} {e.preferredTime} · {e.guests} · {statusText(e.status)}
             </p>
           ))}
           {!customer.enquiries.length ? <p className="today-empty">None.</p> : null}

@@ -5,7 +5,6 @@ import { usePathname } from "next/navigation";
 const tabs = [
   { href: "/book", label: "Book a table", match: (path: string) => path === "/book" || path.endsWith("/book") },
   { href: "/order/collect?via=Website", label: "Click & collect", match: (path: string) => path.startsWith("/order/collect") },
-  { href: "/order/delivery?via=Website", label: "Home delivery", match: (path: string) => path.startsWith("/order/delivery") },
 ];
 
 export function MobileDock() {

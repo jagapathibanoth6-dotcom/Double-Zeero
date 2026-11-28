@@ -8,7 +8,6 @@ export function revalidateHouse() {
   revalidatePath("/admin/bookings");
   revalidatePath("/admin/orders");
   revalidatePath("/admin/kitchen");
-  revalidatePath("/admin/pos");
   revalidatePath("/account");
 }
 

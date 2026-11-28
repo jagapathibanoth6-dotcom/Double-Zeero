@@ -59,7 +59,7 @@ export async function sendAccessEmail(input: {
     title: input.title,
     intro:
       input.intro ||
-      "This is your confirmation. Keep it for your records. Sign in at Account to manage the booking, click & collect, home delivery or party menu.",
+      "This is your confirmation. Keep it for your records. Sign in at Account to manage the booking, click & collect or party menu.",
     details: input.details,
     tempPassword: input.tempPassword || "",
     ctaHref: "/account",

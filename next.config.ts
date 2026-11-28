@@ -12,6 +12,11 @@ const nextConfig: NextConfig = {
     return [
       { source: "/book/manchester", destination: "/manchester/book", permanent: true },
       { source: "/book/chorlton", destination: "/chorlton/book", permanent: true },
+      // Home delivery was removed; old links and QR posters go to click & collect.
+      { source: "/order/delivery", destination: "/order/collect", permanent: false },
+      // Removed dashboard pages (home delivery and the POS till).
+      { source: "/admin/delivery", destination: "/admin/collect", permanent: false },
+      { source: "/admin/pos", destination: "/admin", permanent: false },
     ];
   },
 };

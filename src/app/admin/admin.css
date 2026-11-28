@@ -1,0 +1,2979 @@
+/*
+ * Double Zero — management dashboard design system ("colourful modern").
+ *
+ * Loaded only by the admin layout, after globals.css, so these rules win over
+ * the older admin styles there. Everything is scoped to .admin-app (the signed-in
+ * shell) or .admin-login-screen (sign in), so the public website is untouched.
+ *
+ * Contents: tokens · shell · page furniture · stats & panels · lists & cards ·
+ * tables · badges · buttons & forms · diary · orders & tracking · records ·
+ * payments · menu · settings · gallery · kitchen · overlays · sign in · mobile.
+ */
+
+/* ── Tokens ──────────────────────────────────────────────────────────────── */
+
+.admin-app,
+.admin-login-screen {
+  --admin-bg: #f5f6fb;
+  --admin-card: #ffffff;
+  --admin-subtle: #f8f9fc;
+  --admin-hover: #f1f2f8;
+  --admin-line: #e8eaf2;
+  --admin-line-strong: #d5d8e4;
+  --admin-ink: #161827;
+  --admin-ink-2: #3f4257;
+  --admin-mute: #6b6f85;
+  --admin-faint: #a2a6ba;
+
+  --admin-ember: #e8552d;
+  --admin-ember-hover: #cf4220;
+  --admin-ember-soft: #fff0ea;
+  --admin-ember-ink: #b23a17;
+  --admin-ring: 0 0 0 3px rgba(232, 85, 45, 0.2);
+
+  /* The signature gradient: header, active nav, primary buttons. */
+  --admin-gradient: linear-gradient(120deg, #ff7a3d 0%, #f43f5e 48%, #8b5cf6 100%);
+  --admin-gradient-soft: linear-gradient(120deg, rgba(255, 122, 61, 0.12), rgba(244, 63, 94, 0.1) 48%, rgba(139, 92, 246, 0.12));
+
+  --admin-green: #15803d;
+  --admin-green-soft: #e9f7ee;
+  --admin-amber: #b45309;
+  --admin-amber-soft: #fef5e7;
+  --admin-red: #b91c1c;
+  --admin-red-soft: #fdecec;
+  --admin-blue: #1d4ed8;
+  --admin-blue-soft: #eaf0fe;
+  --admin-violet: #6d28d9;
+  --admin-violet-soft: #f1ecfe;
+  --admin-teal: #0f766e;
+  --admin-teal-soft: #e6f6f4;
+
+  --admin-radius: 16px;
+  --admin-radius-sm: 10px;
+  --admin-shadow: 0 1px 2px rgba(22, 24, 39, 0.04), 0 4px 16px rgba(22, 24, 39, 0.05);
+  --admin-shadow-lg: 0 18px 40px rgba(22, 24, 39, 0.14), 0 2px 6px rgba(22, 24, 39, 0.06);
+
+  /* Re-map the site's Tailwind theme inside the dashboard so utility classes
+     used on admin pages (bg-paper, border-line, text-mute, display, serif…)
+     follow this design instead of the website's. */
+  --color-ink: var(--admin-ink);
+  --color-ink-soft: var(--admin-ink-2);
+  --color-cream: var(--admin-card);
+  --color-paper: var(--admin-subtle);
+  --color-ember: var(--admin-ember);
+  --color-ember-hot: var(--admin-ember-hover);
+  --color-gold: var(--admin-amber);
+  --color-mute: var(--admin-mute);
+  --color-line: var(--admin-line);
+  --font-display: var(--font-outfit), "Outfit", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-outfit), "Outfit", ui-sans-serif, system-ui, sans-serif;
+
+  font-family: var(--font-sans);
+  letter-spacing: 0;
+  color: var(--admin-ink);
+}
+
+/* ── Shell ───────────────────────────────────────────────────────────────── */
+
+.admin-app {
+  grid-template-columns: 16rem minmax(0, 1fr);
+  background: var(--admin-bg);
+}
+
+.admin-app .admin-sidebar {
+  background: var(--admin-card);
+  color: var(--admin-ink);
+  border-right: 1px solid var(--admin-line);
+}
+
+.admin-app .admin-brand {
+  padding: 1rem 0.9rem 0.9rem;
+  border-bottom: 1px solid var(--admin-line);
+}
+
+.admin-app .admin-mark,
+.admin-login-screen .admin-mark {
+  display: grid;
+  place-items: center;
+  width: 2.1rem;
+  height: 2.1rem;
+  flex-shrink: 0;
+  border-radius: 9px;
+  background: var(--admin-ember);
+  color: #fff;
+  font-family: var(--font-sans);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.12);
+}
+
+.admin-app .admin-brand-name,
+.admin-login-screen .admin-brand-name {
+  font-size: 0.95rem;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+  color: var(--admin-ink);
+}
+
+.admin-app .admin-brand-sub,
+.admin-login-screen .admin-brand-sub {
+  font-size: 0.75rem;
+  color: var(--admin-mute);
+}
+
+.admin-app .admin-branch {
+  display: grid;
+  gap: 0.35rem;
+  margin-top: 0.9rem;
+}
+
+.admin-app .admin-branch span {
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--admin-mute);
+}
+
+.admin-app .admin-branch select {
+  width: 100%;
+  height: 2.35rem;
+  padding: 0 2rem 0 0.7rem;
+  border: 1px solid var(--admin-line-strong);
+  border-radius: var(--admin-radius-sm);
+  background: var(--admin-card)
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2378716c' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")
+    no-repeat right 0.6rem center / 1rem;
+  color: var(--admin-ink);
+  font-size: 0.88rem;
+  font-weight: 550;
+  appearance: none;
+  cursor: pointer;
+}
+
+.admin-app .admin-branch select:focus-visible {
+  outline: none;
+  border-color: var(--admin-ember);
+  box-shadow: var(--admin-ring);
+}
+
+.admin-app .admin-nav {
+  padding: 0.75rem 0.6rem 1rem;
+}
+
+.admin-app .admin-nav-group + .admin-nav-group {
+  margin-top: 1.1rem;
+}
+
+.admin-app .admin-nav-label {
+  padding: 0 0.6rem 0.35rem;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: none;
+  color: var(--admin-faint);
+}
+
+.admin-app .admin-nav-link {
+  position: relative;
+  gap: 0.65rem;
+  min-height: 2.25rem;
+  padding: 0.4rem 0.6rem;
+  border-radius: var(--admin-radius-sm);
+  background: transparent;
+  color: var(--admin-ink-2);
+  font-size: 0.89rem;
+  font-weight: 500;
+}
+
+.admin-app .admin-nav-link svg {
+  width: 1.1rem;
+  height: 1.1rem;
+  color: var(--admin-faint);
+  stroke-width: 1.8;
+  transition: color 0.15s ease;
+}
+
+.admin-app .admin-nav-link:hover {
+  background: var(--admin-hover);
+  color: var(--admin-ink);
+}
+
+.admin-app .admin-nav-link:hover svg {
+  color: var(--admin-ink-2);
+}
+
+.admin-app .admin-nav-link.is-active {
+  background: var(--admin-ember-soft);
+  color: var(--admin-ember-ink);
+  font-weight: 600;
+}
+
+.admin-app .admin-nav-link.is-active svg {
+  color: var(--admin-ember);
+}
+
+.admin-app .admin-nav-link.is-active::before {
+  content: "";
+  position: absolute;
+  left: -0.6rem;
+  top: 0.45rem;
+  bottom: 0.45rem;
+  width: 3px;
+  border-radius: 0 3px 3px 0;
+  background: var(--admin-ember);
+}
+
+.admin-app .admin-nav-link:focus-visible {
+  outline: none;
+  box-shadow: var(--admin-ring);
+}
+
+.admin-app .admin-nav-alert {
+  background: var(--admin-ember);
+  color: #fff;
+  font-size: 0.68rem;
+  font-weight: 700;
+}
+
+.admin-app .admin-nav-both {
+  padding: 0.05rem 0.4rem;
+  border-radius: 999px;
+  background: var(--admin-hover);
+  color: var(--admin-mute);
+  font-size: 0.66rem;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+  opacity: 1;
+}
+
+.admin-app .admin-sidebar-foot {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.8rem 0.9rem;
+  border-top: 1px solid var(--admin-line);
+}
+
+.admin-app .admin-avatar {
+  display: grid;
+  place-items: center;
+  width: 2.1rem;
+  height: 2.1rem;
+  flex-shrink: 0;
+  border-radius: 999px;
+  background: var(--admin-ember-soft);
+  color: var(--admin-ember-ink);
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.admin-app .admin-staff {
+  flex: 1;
+  min-width: 0;
+}
+
+.admin-app .admin-staff p:first-child {
+  overflow: hidden;
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: var(--admin-ink);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.admin-app .admin-staff p:last-child {
+  font-size: 0.74rem;
+  color: var(--admin-mute);
+  text-transform: capitalize;
+}
+
+.admin-app .admin-signout {
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  border: 1px solid transparent;
+  border-radius: var(--admin-radius-sm);
+  background: none;
+  color: var(--admin-mute);
+  cursor: pointer;
+}
+
+.admin-app .admin-signout svg {
+  width: 1.05rem;
+  height: 1.05rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.admin-app .admin-signout:hover {
+  border-color: var(--admin-line);
+  background: var(--admin-hover);
+  color: var(--admin-ink);
+}
+
+.admin-app .admin-main {
+  background: var(--admin-bg);
+}
+
+.admin-app .admin-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  min-height: 4rem;
+  padding: 0.65rem clamp(1rem, 2.4vw, 2rem);
+  background: rgba(255, 255, 255, 0.86);
+  backdrop-filter: saturate(1.4) blur(12px);
+  border-bottom: 1px solid var(--admin-line);
+}
+
+.admin-app .admin-topbar-left {
+  min-width: 0;
+}
+
+.admin-app .admin-crumbs {
+  display: flex;
+  gap: 0.4rem;
+  font-size: 0.75rem;
+  color: var(--admin-mute);
+}
+
+.admin-app .admin-crumbs span:first-child {
+  font-weight: 600;
+  color: var(--admin-ink-2);
+}
+
+.admin-app .admin-topbar-title {
+  overflow: hidden;
+  font-size: 1.12rem;
+  font-weight: 650;
+  letter-spacing: -0.015em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.admin-app .admin-topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-shrink: 0;
+}
+
+.admin-app .admin-live {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  height: 1.75rem;
+  padding: 0 0.65rem;
+  border-radius: 999px;
+  background: var(--admin-green-soft);
+  color: var(--admin-green);
+  font-size: 0.75rem;
+  font-weight: 650;
+}
+
+.admin-app .admin-live i {
+  width: 0.45rem;
+  height: 0.45rem;
+  border-radius: 999px;
+  background: currentColor;
+  animation: admin-pulse 2s ease-in-out infinite;
+}
+
+@keyframes admin-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(21, 128, 61, 0.45); }
+  50% { box-shadow: 0 0 0 4px rgba(21, 128, 61, 0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .admin-app .admin-live i { animation: none; }
+}
+
+.admin-app .admin-topbar-date {
+  padding: 0 0.25rem;
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--admin-mute);
+  white-space: nowrap;
+}
+
+.admin-app .admin-top-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  height: 2.25rem;
+  padding: 0 0.85rem;
+  border: 1px solid var(--admin-ember);
+  border-radius: var(--admin-radius-sm);
+  background: var(--admin-ember);
+  color: #fff;
+  font-size: 0.85rem;
+  font-weight: 600;
+  white-space: nowrap;
+  box-shadow: var(--admin-shadow);
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.admin-app .admin-top-btn svg {
+  width: 1rem;
+  height: 1rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+}
+
+.admin-app .admin-top-btn:hover {
+  border-color: var(--admin-ember-hover);
+  background: var(--admin-ember-hover);
+}
+
+.admin-app .admin-top-btn.is-ghost {
+  border-color: var(--admin-line-strong);
+  background: var(--admin-card);
+  color: var(--admin-ink);
+}
+
+.admin-app .admin-top-btn.is-ghost:hover {
+  background: var(--admin-hover);
+}
+
+.admin-app .admin-top-btn:focus-visible {
+  outline: none;
+  box-shadow: var(--admin-ring);
+}
+
+.admin-app .admin-content {
+  width: 100%;
+  max-width: 92rem;
+  margin: 0 auto;
+  padding: clamp(1rem, 2.4vw, 2rem);
+}
+
+/* ── Page furniture ──────────────────────────────────────────────────────── */
+
+.admin-app .admin-page-title {
+  font-family: var(--font-sans);
+  font-size: 1.6rem;
+  font-weight: 650;
+  line-height: 1.2;
+  letter-spacing: -0.025em;
+  color: var(--admin-ink);
+}
+
+.admin-app .admin-page-copy {
+  margin-top: 0.3rem;
+  max-width: 46rem;
+  font-size: 0.92rem;
+  line-height: 1.55;
+  color: var(--admin-mute);
+}
+
+.admin-app .today-kicker {
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--admin-ember);
+}
+
+/* The site's "display" and "serif" helpers are uppercase/serif; in the
+   dashboard they read as ordinary headings and labels. */
+.admin-app .display,
+.admin-app .serif {
+  font-family: var(--font-sans);
+  letter-spacing: -0.01em !important;
+  text-transform: none;
+}
+
+.admin-app h1.serif,
+.admin-app h2.serif {
+  font-weight: 650;
+}
+
+.admin-app .wordmark {
+  letter-spacing: 0.04em;
+}
+
+.admin-app a.text-ember,
+.admin-app .ember-link {
+  color: var(--admin-ember);
+  font-weight: 600;
+}
+
+/* ── Stats, pulse and panels ─────────────────────────────────────────────── */
+
+.admin-app .today-hero {
+  align-items: end;
+  gap: 1rem;
+}
+
+.admin-app .today-pulse {
+  gap: 0.6rem;
+}
+
+.admin-app .today-pulse > div {
+  min-width: 7rem;
+  padding: 0.7rem 0.95rem;
+  border: 1px solid var(--admin-line);
+  border-radius: var(--admin-radius);
+  background: var(--admin-card);
+  color: var(--admin-ink);
+  box-shadow: var(--admin-shadow);
+}
+
+.admin-app .today-pulse span {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 550;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--admin-mute);
+}
+
+.admin-app .today-pulse strong {
+  display: block;
+  margin-top: 0.15rem;
+  font-size: 1.35rem;
+  font-weight: 650;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+.admin-app .admin-stat-grid {
+  gap: 0.75rem;
+}
+
+.admin-app .admin-stat {
+  --tone: var(--admin-mute);
+  --tone-soft: var(--admin-hover);
+  position: relative;
+  padding: 1rem 1.05rem 0.95rem;
+  border: 1px solid var(--admin-line);
+  border-top: 1px solid var(--admin-line);
+  border-radius: var(--admin-radius);
+  background: var(--admin-card);
+  box-shadow: var(--admin-shadow);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+}
+
+.admin-app .admin-stat:hover {
+  border-color: var(--admin-line-strong);
+  box-shadow: 0 4px 14px rgba(28, 25, 23, 0.07);
+  transform: translateY(-1px);
+}
+
+.admin-app .admin-stat:focus-visible {
+  outline: none;
+  box-shadow: var(--admin-ring);
+}
+
+.admin-app .admin-stat.is-ember { --tone: var(--admin-ember); --tone-soft: var(--admin-ember-soft); border-top-color: var(--admin-line); }
+.admin-app .admin-stat.is-gold { --tone: var(--admin-amber); --tone-soft: var(--admin-amber-soft); border-top-color: var(--admin-line); }
+.admin-app .admin-stat.is-forest { --tone: var(--admin-green); --tone-soft: var(--admin-green-soft); border-top-color: var(--admin-line); }
+.admin-app .admin-stat.is-teal { --tone: var(--admin-teal); --tone-soft: var(--admin-teal-soft); border-top-color: var(--admin-line); }
+.admin-app .admin-stat.is-navy { --tone: var(--admin-blue); --tone-soft: var(--admin-blue-soft); border-top-color: var(--admin-line); }
+.admin-app .admin-stat.is-wine { --tone: var(--admin-violet); --tone-soft: var(--admin-violet-soft); border-top-color: var(--admin-line); }
+.admin-app .admin-stat.is-amber { --tone: var(--admin-amber); --tone-soft: var(--admin-amber-soft); border-top-color: var(--admin-line); }
+.admin-app .admin-stat.is-slate { --tone: var(--admin-mute); --tone-soft: var(--admin-hover); border-top-color: var(--admin-line); }
+
+.admin-app .admin-stat p:first-child {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.8rem;
+  font-weight: 550;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--admin-ink-2);
+}
+
+.admin-app .admin-stat p:first-child::before {
+  content: "";
+  width: 0.55rem;
+  height: 0.55rem;
+  flex-shrink: 0;
+  border-radius: 3px;
+  background: var(--tone);
+  box-shadow: 0 0 0 3px var(--tone-soft);
+}
+
+.admin-app .admin-stat strong {
+  display: block;
+  margin-top: 0.55rem;
+  font-size: 1.75rem;
+  font-weight: 650;
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+  color: var(--admin-ink);
+}
+
+.admin-app .admin-stat em {
+  display: block;
+  margin-top: 0.2rem;
+  font-size: 0.78rem;
+  font-style: normal;
+  color: var(--admin-mute);
+}
+
+.admin-app .admin-panel {
+  padding: 1.15rem 1.25rem;
+  border: 1px solid var(--admin-line);
+  border-radius: var(--admin-radius);
+  background: var(--admin-card);
+  box-shadow: var(--admin-shadow);
+}
+
+.admin-app .today-panel-head {
+  align-items: flex-start;
+  margin-bottom: 0.85rem;
+}
+
+.admin-app .today-panel-head h2,
+.admin-app .today-panel-head h3 {
+  font-size: 1rem;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+  color: var(--admin-ink);
+}
+
+.admin-app .today-panel-head p {
+  margin-top: 0.15rem;
+  font-size: 0.8rem;
+  color: var(--admin-mute);
+}
+
+.admin-app .today-panel-head a {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  flex-shrink: 0;
+  height: 1.9rem;
+  padding: 0 0.7rem;
+  border: 1px solid var(--admin-line);
+  border-radius: var(--admin-radius-sm);
+  background: var(--admin-card);
+  color: var(--admin-ink-2);
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.admin-app .today-panel-head a::after {
+  content: "→";
+  color: var(--admin-faint);
+}
+
+.admin-app .today-panel-head a:hover {
+  border-color: var(--admin-line-strong);
+  background: var(--admin-hover);
+  color: var(--admin-ink);
+}
+
+.admin-app .today-empty,
+.admin-app .diary-empty {
+  padding: 1.1rem 1rem;
+  border: 1px dashed var(--admin-line-strong);
+  border-radius: var(--admin-radius-sm);
+  background: var(--admin-subtle);
+  font-size: 0.86rem;
+  color: var(--admin-mute);
+  text-align: center;
+}
+
+.admin-app .today-mini {
+  border-top: 1px solid var(--admin-line);
+  font-size: 0.86rem;
+}
+
+.admin-app .today-mini strong {
+  color: var(--admin-ember);
+}
+
+/* ── Cards in lists ──────────────────────────────────────────────────────── */
+
+.admin-app .today-card {
+  border: 1px solid var(--admin-line);
+  border-radius: 10px;
+  background: var(--admin-card);
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.admin-app .today-card:hover {
+  border-color: var(--admin-line-strong);
+  background: var(--admin-subtle);
+}
+
+.admin-app .today-card.is-live {
+  border-color: rgba(196, 69, 29, 0.3);
+  background: var(--admin-ember-soft);
+}
+
+.admin-app .today-card time {
+  font-size: 0.86rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--admin-ember);
+}
+
+.admin-app .today-card-name {
+  font-size: 0.93rem;
+  font-weight: 600;
+}
+
+.admin-app .today-card-meta {
+  font-size: 0.76rem;
+  color: var(--admin-mute);
+}
+
+/* ── Tables ──────────────────────────────────────────────────────────────── */
+
+.admin-app .admin-table,
+.admin-app .pay-table,
+.admin-app .seat-sheet {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 0.88rem;
+}
+
+.admin-app .admin-table th,
+.admin-app .pay-table th,
+.admin-app .seat-sheet th {
+  padding: 0.6rem 0.75rem;
+  border-bottom: 1px solid var(--admin-line);
+  background: var(--admin-subtle);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-align: left;
+  text-transform: none;
+  color: var(--admin-mute);
+  white-space: nowrap;
+}
+
+.admin-app .admin-table th:first-child,
+.admin-app .pay-table th:first-child {
+  border-top-left-radius: var(--admin-radius-sm);
+}
+
+.admin-app .admin-table th:last-child,
+.admin-app .pay-table th:last-child {
+  border-top-right-radius: var(--admin-radius-sm);
+}
+
+.admin-app .admin-table td,
+.admin-app .pay-table td,
+.admin-app .seat-sheet td {
+  padding: 0.7rem 0.75rem;
+  border-bottom: 1px solid var(--admin-line);
+  font-size: 0.87rem;
+  vertical-align: middle;
+}
+
+.admin-app .admin-table tbody tr,
+.admin-app .pay-table tbody tr {
+  transition: background-color 0.12s ease;
+}
+
+.admin-app .admin-table tbody tr:hover td,
+.admin-app .pay-table tbody tr:hover td {
+  background: var(--admin-subtle);
+}
+
+.admin-app .pay-table tr.is-open td,
+.admin-app .pay-table-detail td {
+  background: var(--admin-subtle);
+}
+
+.admin-app .pay-table td strong {
+  font-weight: 600;
+}
+
+.admin-app .pay-table td em {
+  font-size: 0.76rem;
+  font-style: normal;
+  color: var(--admin-mute);
+}
+
+.admin-app .pay-table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--admin-line);
+  border-radius: var(--admin-radius);
+  background: var(--admin-card);
+}
+
+.admin-app .pay-table-wrap .pay-table th:first-child,
+.admin-app .pay-table-wrap .pay-table th:last-child {
+  border-radius: 0;
+}
+
+.admin-app .pay-table-wrap .pay-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+/* ── Badges ──────────────────────────────────────────────────────────────── */
+
+.admin-app .admin-badge,
+.admin-app .pay-badge,
+.admin-app .menu-unavailable {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  height: 1.4rem;
+  padding: 0 0.55rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0;
+  line-height: 1;
+  text-transform: none;
+  white-space: nowrap;
+}
+
+.admin-app .admin-badge {
+  background: var(--admin-hover);
+  color: var(--admin-ink-2);
+}
+
+.admin-app .pay-badge::before {
+  content: "";
+  width: 0.4rem;
+  height: 0.4rem;
+  border-radius: 999px;
+  background: currentColor;
+  opacity: 0.85;
+}
+
+.admin-app .pay-badge.is-paid { background: var(--admin-green-soft); color: var(--admin-green); }
+.admin-app .pay-badge.is-unpaid { background: var(--admin-red-soft); color: var(--admin-red); }
+.admin-app .pay-badge.is-refunded { background: var(--admin-hover); color: var(--admin-mute); }
+.admin-app .pay-badge.is-part { background: var(--admin-amber-soft); color: var(--admin-amber); }
+.admin-app .pay-badge.is-pending { background: var(--admin-blue-soft); color: var(--admin-blue); }
+
+.admin-app .menu-unavailable {
+  background: var(--admin-red-soft);
+  color: var(--admin-red);
+}
+
+.admin-app .order-flag {
+  padding: 0.7rem 0.9rem;
+  border-radius: var(--admin-radius-sm);
+  font-size: 0.86rem;
+  font-weight: 500;
+}
+
+.admin-app .order-flag.is-cancelled { background: var(--admin-red-soft); color: var(--admin-red); }
+.admin-app .order-flag.is-done { background: var(--admin-green-soft); color: var(--admin-green); }
+
+/* ── Buttons ─────────────────────────────────────────────────────────────── */
+
+.admin-app .btn,
+.admin-login-screen .btn {
+  gap: 0.45rem;
+  min-height: 2.35rem;
+  padding: 0 0.95rem;
+  border: 1px solid var(--admin-line-strong);
+  border-radius: var(--admin-radius-sm);
+  background: var(--admin-card);
+  color: var(--admin-ink);
+  font-family: var(--font-sans);
+  font-size: 0.86rem;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+  box-shadow: var(--admin-shadow);
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.admin-app .btn:hover,
+.admin-login-screen .btn:hover {
+  transform: none;
+  border-color: var(--admin-faint);
+  background: var(--admin-hover);
+}
+
+.admin-app .btn:focus-visible,
+.admin-login-screen .btn:focus-visible {
+  outline: none;
+  box-shadow: var(--admin-ring);
+}
+
+.admin-app .btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.admin-app .btn-ember,
+.admin-login-screen .btn-ember {
+  border-color: var(--admin-ember);
+  background: var(--admin-ember);
+  color: #fff;
+}
+
+.admin-app .btn-ember:hover,
+.admin-app .btn-ember:focus-visible,
+.admin-login-screen .btn-ember:hover {
+  border-color: var(--admin-ember-hover);
+  background: var(--admin-ember-hover);
+  color: #fff;
+}
+
+.admin-app .btn-ghost,
+.admin-app .btn-light {
+  border-color: var(--admin-line-strong);
+  background: var(--admin-card);
+  color: var(--admin-ink);
+}
+
+.admin-app .btn-ghost:hover,
+.admin-app .btn-ghost:focus-visible,
+.admin-app .btn-light:hover {
+  border-color: var(--admin-faint);
+  background: var(--admin-hover);
+  color: var(--admin-ink);
+}
+
+.admin-app .btn-sm {
+  min-height: 2rem;
+  padding: 0 0.7rem;
+  font-size: 0.8rem;
+}
+
+/* ── Forms ───────────────────────────────────────────────────────────────── */
+
+.admin-app label,
+.admin-app .settings-field,
+.admin-app .settings-hours-row label,
+.admin-app .record-form label {
+  font-family: var(--font-sans);
+  font-size: 0.84rem;
+  font-weight: 550;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--admin-ink-2);
+}
+
+.admin-app input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="range"]),
+.admin-app select,
+.admin-app textarea,
+.admin-login-screen input {
+  min-height: 2.35rem;
+  padding: 0.45rem 0.7rem;
+  border: 1px solid var(--admin-line-strong);
+  border-radius: var(--admin-radius-sm);
+  background-color: var(--admin-card);
+  color: var(--admin-ink);
+  font-family: var(--font-sans);
+  font-size: 0.88rem;
+  letter-spacing: 0;
+  box-shadow: 0 1px 1px rgba(28, 25, 23, 0.03);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.admin-app textarea {
+  min-height: 5.5rem;
+  line-height: 1.5;
+}
+
+.admin-app input::placeholder,
+.admin-app textarea::placeholder {
+  color: var(--admin-faint);
+}
+
+.admin-app input:not([type="checkbox"]):not([type="radio"]):hover,
+.admin-app select:hover,
+.admin-app textarea:hover {
+  border-color: var(--admin-faint);
+}
+
+.admin-app input:focus,
+.admin-app select:focus,
+.admin-app textarea:focus,
+.admin-login-screen input:focus {
+  outline: none;
+  border-color: var(--admin-ember);
+  box-shadow: var(--admin-ring);
+}
+
+.admin-app input[type="checkbox"],
+.admin-app input[type="radio"] {
+  width: 1rem;
+  height: 1rem;
+  accent-color: var(--admin-ember);
+}
+
+.admin-app input[type="file"] {
+  font-size: 0.84rem;
+  color: var(--admin-mute);
+}
+
+.admin-app input[type="file"]::file-selector-button {
+  margin-right: 0.7rem;
+  height: 2.1rem;
+  padding: 0 0.8rem;
+  border: 1px solid var(--admin-line-strong);
+  border-radius: var(--admin-radius-sm);
+  background: var(--admin-card);
+  color: var(--admin-ink);
+  font-family: var(--font-sans);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.admin-app .action-confirm {
+  border: 1px solid #f5d0c0;
+  border-radius: var(--admin-radius-sm);
+  background: var(--admin-ember-soft);
+  font-size: 0.82rem;
+}
+
+.admin-app .action-error,
+.admin-app .admin-error {
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: var(--admin-red);
+}
+
+/* ── Diary (bookings timeline) ───────────────────────────────────────────── */
+
+.admin-app .diary-toolbar {
+  border: 1px solid var(--admin-line);
+  border-radius: var(--admin-radius);
+  background: var(--admin-card);
+  box-shadow: var(--admin-shadow);
+}
+
+.admin-app .diary-nav-btn,
+.admin-app .diary-today,
+.admin-app .diary-week-day,
+.admin-app .diary-zoom button {
+  min-height: 2rem;
+  border: 1px solid var(--admin-line-strong);
+  border-radius: var(--admin-radius-sm);
+  background: var(--admin-card);
+  color: var(--admin-ink);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.admin-app .diary-nav-btn:hover,
+.admin-app .diary-week-day:hover,
+.admin-app .diary-zoom button:hover {
+  background: var(--admin-hover);
+}
+
+.admin-app .diary-week-day.is-on,
+.admin-app .diary-today {
+  border-color: var(--admin-ink);
+  background: var(--admin-ink);
+  color: #fff;
+}
+
+.admin-app .diary-date-input {
+  min-height: 2rem;
+  font-size: 0.82rem;
+}
+
+.admin-app .diary-branch {
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--admin-mute);
+}
+
+.admin-app .diary-filter {
+  height: 1.9rem;
+  padding: 0 0.75rem;
+  border: 1px solid var(--admin-line-strong);
+  border-radius: 999px;
+  background: var(--admin-card);
+  color: var(--admin-ink-2);
+  font-size: 0.78rem;
+  font-weight: 550;
+}
+
+.admin-app .diary-filter:hover {
+  background: var(--admin-hover);
+}
+
+.admin-app .diary-filter em {
+  margin-left: 0.25rem;
+  font-style: normal;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  opacity: 0.75;
+}
+
+.admin-app .diary-filter.is-on {
+  border-color: transparent;
+  color: #fff;
+}
+
+.admin-app .diary-filter.is-all.is-on,
+.admin-app .diary-filters.is-orders .diary-filter.is-on { background: var(--admin-ink); }
+.admin-app .diary-filter.is-inside.is-on { background: var(--admin-ember); }
+.admin-app .diary-filter.is-walkin.is-on { background: var(--admin-amber); }
+.admin-app .diary-filter.is-collect.is-on { background: var(--admin-teal); }
+.admin-app .diary-filter.is-delivery.is-on { background: var(--admin-blue); }
+.admin-app .diary-filter.is-party.is-on { background: var(--admin-violet); }
+
+.admin-app .diary-walkin-head {
+  border: 1px solid #f3d9b5;
+  border-radius: var(--admin-radius-sm);
+  background: var(--admin-amber-soft);
+}
+
+.admin-app .diary-walkin-head strong {
+  font-size: 0.78rem;
+  font-weight: 650;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--admin-amber);
+}
+
+.admin-app .diary-walkin-head button {
+  border-radius: var(--admin-radius-sm);
+  background: var(--admin-amber);
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.admin-app .diary {
+  border: 1px solid var(--admin-line);
+  border-radius: var(--admin-radius);
+  background: var(--admin-card);
+  box-shadow: var(--admin-shadow);
+}
+
+.admin-app .diary-legend {
+  font-size: 0.78rem;
+  color: var(--admin-ink-2);
+  border-bottom: 1px solid var(--admin-line);
+}
+
+.admin-app .diary-legend .is-inside::before { background: var(--admin-ember); }
+.admin-app .diary-legend .is-walkin::before { background: var(--admin-amber); }
+.admin-app .diary-legend .is-collect::before { background: var(--admin-teal); }
+.admin-app .diary-legend .is-delivery::before { background: var(--admin-blue); }
+
+.admin-app .diary-ruler {
+  background: var(--admin-subtle);
+  border-bottom: 1px solid var(--admin-line);
+}
+
+.admin-app .diary-tick {
+  color: var(--admin-faint);
+  border-right: 1px solid var(--admin-line);
+}
+
+.admin-app .diary-tick.is-hour {
+  background: transparent;
+  color: var(--admin-ink);
+  font-weight: 650;
+}
+
+.admin-app .diary-tick.has-items {
+  color: var(--admin-ember);
+}
+
+.admin-app .diary-livebar {
+  background: var(--admin-line);
+}
+
+.admin-app .diary-livebar-fill {
+  background: var(--admin-ember);
+}
+
+.admin-app .diary-cols {
+  background: repeating-linear-gradient(
+    90deg,
+    #ffffff 0 var(--slot-w),
+    var(--admin-subtle) var(--slot-w) calc(var(--slot-w) * 2)
+  );
+}
+
+.admin-app .diary-col {
+  border-right: 1px solid rgba(28, 25, 23, 0.05);
+}
+
+.admin-app .diary-elapsed {
+  background: rgba(28, 25, 23, 0.035);
+}
+
+.admin-app .diary-live-head::before,
+.admin-app .diary-live-head span,
+.admin-app .diary-live-line::before {
+  background: var(--admin-ember);
+}
+
+.admin-app .diary-live-line {
+  border-left-color: var(--admin-ember);
+  box-shadow: none;
+}
+
+.admin-app .diary-shift {
+  background: var(--admin-ink);
+  box-shadow: var(--admin-shadow-lg);
+}
+
+.admin-app .diary-live-clock.is-on {
+  color: var(--admin-ember);
+}
+
+.admin-app .diary-card {
+  border-radius: var(--admin-radius-sm);
+  color: #fff;
+  box-shadow: 0 1px 2px rgba(28, 25, 23, 0.12);
+}
+
+.admin-app .diary-card.is-inside { background: var(--admin-ember); }
+.admin-app .diary-card.is-walkin { background: var(--admin-amber); }
+.admin-app .diary-card.is-collect { background: var(--admin-teal); }
+.admin-app .diary-card.is-delivery { background: var(--admin-blue); }
+
+.admin-app .diary-card-kind {
+  font-size: 0.6rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: none;
+  opacity: 0.85;
+}
+
+.admin-app .diary-card .pay-badge {
+  height: 1.15rem;
+  padding: 0 0.4rem;
+  font-size: 0.6rem;
+}
+
+.admin-app .diary-card .pay-badge::before {
+  display: none;
+}
+
+.admin-app .diary-card .pay-badge.is-paid {
+  background: rgba(255, 255, 255, 0.22);
+  color: #fff;
+}
+
+.admin-app .diary-card .pay-badge.is-unpaid {
+  background: #fff;
+  color: var(--admin-red);
+}
+
+.admin-app .diary-walkin-add {
+  border: 1px dashed var(--admin-amber);
+  border-radius: var(--admin-radius-sm);
+  background: var(--admin-amber-soft);
+  color: var(--admin-amber);
+  font-size: 0.66rem;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.admin-app .diary-hours {
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+/* ── Orders, tracking boards and payment cards ──────────────────────────── */
+
+.admin-app .order-board-card,
+.admin-app .track-card,
+.admin-app .pay-desk-card {
+  --accent: var(--admin-ink);
+  position: relative;
+  border: 1px solid var(--admin-line);
+  border-left: 1px solid var(--admin-line);
+  border-radius: var(--admin-radius);
+  background: var(--admin-card);
+  box-shadow: var(--admin-shadow);
+  overflow: hidden;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.admin-app .order-board-card::before,
+.admin-app .track-card::before,
+.admin-app .pay-desk-card::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: var(--accent);
+}
+
+.admin-app .order-board-card:hover,
+.admin-app .track-card:hover,
+.admin-app .pay-desk-card:hover {
+  border-color: var(--admin-line-strong);
+  box-shadow: 0 4px 14px rgba(28, 25, 23, 0.07);
+}
+
+.admin-app .order-board-card.is-collect,
+.admin-app .track-card,
+.admin-app .pay-desk-card.is-collect { --accent: var(--admin-teal); border-left-color: var(--admin-line); }
+.admin-app .order-board-card.is-delivery,
+.admin-app .track-card.is-delivery,
+.admin-app .pay-desk-card.is-delivery { --accent: var(--admin-blue); border-left-color: var(--admin-line); }
+.admin-app .order-board-card.is-inside,
+.admin-app .pay-desk-card.is-inside { --accent: var(--admin-ember); border-left-color: var(--admin-line); }
+.admin-app .order-board-card.is-party,
+.admin-app .pay-desk-card.is-party { --accent: var(--admin-violet); border-left-color: var(--admin-line); }
+
+.admin-app .order-board-kicker,
+.admin-app .track-card-ref {
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--accent, var(--admin-ember));
+}
+
+.admin-app .order-board-link h2,
+.admin-app .pay-desk-link h3,
+.admin-app .track-card-link h3 {
+  font-size: 1rem;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+  font-variant-numeric: tabular-nums;
+}
+
+.admin-app .order-board-items,
+.admin-app .order-board-pay p,
+.admin-app .track-card-meta,
+.admin-app .track-card-items,
+.admin-app .track-card-address,
+.admin-app .track-card-courier,
+.admin-app .track-card-pay {
+  font-size: 0.8rem;
+  color: var(--admin-mute);
+}
+
+.admin-app .track-lane {
+  border: 1px solid var(--admin-line);
+  border-radius: var(--admin-radius);
+  background: var(--admin-subtle);
+  box-shadow: none;
+}
+
+.admin-app .track-lane-head h2 {
+  font-size: 0.92rem;
+  font-weight: 650;
+}
+
+.admin-app .track-lane-head p {
+  font-size: 0.76rem;
+  color: var(--admin-mute);
+}
+
+.admin-app .track-lane-head em {
+  border: 1px solid var(--admin-line);
+  border-radius: 999px;
+  background: var(--admin-card);
+  font-size: 0.75rem;
+  font-style: normal;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+}
+
+.admin-app .track-lane.is-done .track-lane-head em {
+  border-color: transparent;
+  background: var(--admin-green-soft);
+  color: var(--admin-green);
+}
+
+.admin-app .stripe-desk-bar {
+  border: 1px solid var(--admin-line);
+  border-radius: var(--admin-radius);
+  background: var(--admin-card);
+  box-shadow: var(--admin-shadow);
+}
+
+.admin-app .stripe-desk-bar.is-ready {
+  border-color: #c6e7d1;
+  background: var(--admin-green-soft);
+}
+
+.admin-app .stripe-desk-bar.is-off {
+  border-color: #f3d9b5;
+  background: var(--admin-amber-soft);
+}
+
+.admin-app .stripe-desk-kicker {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--admin-mute);
+}
+
+.admin-app .pay-desk-search {
+  min-height: 2.5rem;
+  border: 1px solid var(--admin-line-strong);
+  border-radius: var(--admin-radius-sm);
+  font-size: 0.9rem;
+}
+
+.admin-app .pay-admin-list {
+  border-color: var(--admin-line);
+}
+
+/* ── Record pages (booking, order, customer detail) ─────────────────────── */
+
+.admin-app .record-back,
+.admin-app .record-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--admin-mute);
+}
+
+.admin-app .record-back:hover,
+.admin-app .record-link:hover {
+  color: var(--admin-ember);
+}
+
+.admin-app .record-link {
+  color: var(--admin-ember);
+}
+
+.admin-app .record-grid h2 {
+  font-size: 1rem;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+}
+
+.admin-app .record-dl dt,
+.admin-app .pay-bill-grid dt {
+  font-size: 0.75rem;
+  font-weight: 550;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--admin-mute);
+}
+
+.admin-app .record-dl dd {
+  font-size: 0.9rem;
+  color: var(--admin-ink);
+}
+
+.admin-app .pay-bill-grid dd {
+  font-size: 1.15rem;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+}
+
+.admin-app .pay-bill-grid dd.is-due {
+  color: var(--admin-red);
+}
+
+.admin-app .record-line {
+  border-top: 1px solid var(--admin-line);
+  font-size: 0.88rem;
+}
+
+.admin-app .record-line span {
+  font-size: 0.76rem;
+  color: var(--admin-mute);
+}
+
+.admin-app .record-line.is-link:hover,
+.admin-app .record-customer:hover strong {
+  color: var(--admin-ember);
+}
+
+.admin-app .record-note {
+  font-size: 0.8rem;
+  color: var(--admin-teal);
+}
+
+.admin-app .pay-bill-lines li,
+.admin-app .order-items li {
+  border-top: 1px solid var(--admin-line);
+  font-size: 0.88rem;
+}
+
+.admin-app .pay-bill-lines em,
+.admin-app .order-items em,
+.admin-app .order-items small,
+.admin-app .pay-bill-pays,
+.admin-app .refund-partial {
+  font-size: 0.78rem;
+  font-style: normal;
+  color: var(--admin-mute);
+}
+
+.admin-app .pay-bill-refunds {
+  border-top: 1px solid var(--admin-line);
+  font-size: 0.8rem;
+  color: var(--admin-red);
+}
+
+/* ── Menu editor ─────────────────────────────────────────────────────────── */
+
+.admin-app .menu-group {
+  overflow: hidden;
+  border: 1px solid var(--admin-line);
+  border-radius: var(--admin-radius);
+  background: var(--admin-card);
+  box-shadow: var(--admin-shadow);
+}
+
+.admin-app .menu-group header {
+  background: var(--admin-subtle);
+  color: var(--admin-ink);
+  border-bottom: 1px solid var(--admin-line);
+}
+
+.admin-app .menu-group header h2 {
+  font-size: 0.88rem;
+  font-weight: 650;
+  letter-spacing: 0;
+  text-transform: capitalize;
+}
+
+.admin-app .menu-group header span {
+  font-size: 0.76rem;
+  color: var(--admin-mute);
+}
+
+.admin-app .menu-item {
+  border-top: 1px solid var(--admin-line);
+  transition: background-color 0.12s ease;
+}
+
+.admin-app .menu-group header + * .menu-item:first-child,
+.admin-app .menu-group header + .menu-item {
+  border-top: 0;
+}
+
+.admin-app .menu-item:hover {
+  background: var(--admin-subtle);
+}
+
+.admin-app .menu-item img,
+.admin-app .menu-item-ph {
+  border-radius: var(--admin-radius-sm);
+}
+
+.admin-app .menu-item-ph {
+  background: var(--admin-hover);
+  color: var(--admin-faint);
+  font-size: 0.7rem;
+  letter-spacing: 0;
+}
+
+.admin-app .menu-item-copy strong {
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.admin-app .menu-item-copy p {
+  font-size: 0.8rem;
+  color: var(--admin-mute);
+}
+
+.admin-app .menu-switch {
+  color: var(--admin-mute);
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.admin-app .menu-switch-track {
+  background: var(--admin-line-strong);
+}
+
+.admin-app .menu-switch.is-on {
+  color: var(--admin-green);
+}
+
+.admin-app .menu-switch.is-on .menu-switch-track {
+  background: var(--admin-green);
+}
+
+.admin-app .menu-edit {
+  border: 1px solid var(--admin-line-strong);
+  border-radius: var(--admin-radius-sm);
+  background: var(--admin-card);
+  color: var(--admin-ink);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.admin-app .menu-edit:hover {
+  background: var(--admin-hover);
+}
+
+.admin-app .menu-photo-edit img {
+  border-radius: var(--admin-radius-sm);
+  border: 1px solid var(--admin-line);
+  background: var(--admin-hover);
+}
+
+/* ── Settings, QR and gallery ────────────────────────────────────────────── */
+
+.admin-app .settings-page .today-kicker {
+  font-size: 0.8rem;
+}
+
+.admin-app .settings-field em,
+.admin-app .settings-toggle em,
+.admin-app .settings-uber-copy,
+.admin-app .qr-hint {
+  font-size: 0.78rem;
+  font-style: normal;
+  font-weight: 400;
+  color: var(--admin-mute);
+}
+
+.admin-app .settings-toggle {
+  border: 1px solid var(--admin-line);
+  border-radius: var(--admin-radius-sm);
+  background: var(--admin-card);
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.admin-app .settings-toggle:hover {
+  border-color: var(--admin-line-strong);
+}
+
+.admin-app .settings-toggle.is-on {
+  border-color: #c6e7d1;
+  background: var(--admin-green-soft);
+}
+
+.admin-app .settings-toggle strong {
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.admin-app .settings-hours-card,
+.admin-app .qr-card,
+.admin-app .gallery-admin-card {
+  border: 1px solid var(--admin-line);
+  border-radius: var(--admin-radius);
+  background: var(--admin-card);
+  box-shadow: var(--admin-shadow);
+}
+
+.admin-app .settings-hours-card h3,
+.admin-app .qr-card-body h3,
+.admin-app .settings-uber-title {
+  font-size: 0.95rem;
+  font-weight: 650;
+}
+
+.admin-app .settings-hours-row.is-head {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--admin-mute);
+}
+
+.admin-app .settings-uber {
+  border-top: 1px solid var(--admin-line);
+}
+
+.admin-app .qr-thumb {
+  border: 1px solid var(--admin-line);
+  border-radius: var(--admin-radius-sm);
+  background: var(--admin-card);
+}
+
+.admin-app .qr-card-names,
+.admin-app .qr-link {
+  font-size: 0.76rem;
+  color: var(--admin-mute);
+}
+
+.admin-app .gallery-admin-card {
+  overflow: hidden;
+}
+
+.admin-app .gallery-admin-card img {
+  background: var(--admin-hover);
+}
+
+.admin-app .gallery-admin-card p {
+  font-size: 0.82rem;
+}
+
+/* ── Kitchen board (Tailwind-built cards) ───────────────────────────────── */
+
+.admin-app article.bg-paper {
+  border-radius: var(--admin-radius-sm);
+  background: var(--admin-card);
+  box-shadow: var(--admin-shadow);
+}
+
+/* ── Overlays and toasts ─────────────────────────────────────────────────── */
+
+.admin-app .walkin-sheet,
+.admin-app .pay-sheet-card {
+  border: 1px solid var(--admin-line);
+  border-radius: 16px;
+  background: var(--admin-card);
+  box-shadow: var(--admin-shadow-lg);
+}
+
+.admin-app .walkin-sheet h2 {
+  font-size: 1.15rem;
+  font-weight: 650;
+}
+
+.admin-app .pay-sheet-back {
+  background: rgba(28, 25, 23, 0.45);
+  backdrop-filter: blur(2px);
+}
+
+.admin-app .admin-toast {
+  border-radius: 10px;
+  background: var(--admin-ink);
+  color: #fff;
+  font-size: 0.86rem;
+  font-weight: 500;
+  box-shadow: var(--admin-shadow-lg);
+}
+
+/* ── Sign in ─────────────────────────────────────────────────────────────── */
+
+.admin-login-screen {
+  min-height: 100vh;
+  background:
+    radial-gradient(60rem 30rem at 50% -10%, rgba(196, 69, 29, 0.08), transparent 70%),
+    var(--admin-bg);
+}
+
+.admin-login-screen .admin-login {
+  display: grid;
+  min-height: 100vh;
+  place-items: center;
+  padding: 1.25rem;
+}
+
+.admin-login-screen .admin-login-card {
+  display: grid;
+  gap: 1.1rem;
+  width: 100%;
+  max-width: 24rem;
+  padding: 2rem;
+  border: 1px solid var(--admin-line);
+  border-radius: 16px;
+  background: var(--admin-card);
+  box-shadow: var(--admin-shadow-lg);
+}
+
+.admin-login-screen .admin-login-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+}
+
+.admin-login-screen .admin-login-title {
+  font-size: 1.45rem;
+  font-weight: 650;
+  letter-spacing: -0.02em;
+  color: var(--admin-ink);
+}
+
+.admin-login-screen .admin-login-copy {
+  margin-top: 0.2rem;
+  font-size: 0.88rem;
+  color: var(--admin-mute);
+}
+
+.admin-login-screen .admin-field {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.admin-login-screen .admin-field span {
+  font-size: 0.84rem;
+  font-weight: 550;
+  color: var(--admin-ink-2);
+}
+
+.admin-login-screen .admin-field input {
+  width: 100%;
+  min-height: 2.6rem;
+}
+
+.admin-login-screen .admin-login-error {
+  padding: 0.6rem 0.75rem;
+  border-radius: var(--admin-radius-sm);
+  background: var(--admin-red-soft);
+  color: var(--admin-red);
+  font-size: 0.84rem;
+}
+
+.admin-login-screen .btn {
+  min-height: 2.6rem;
+}
+
+/* ── Tablet and phone ────────────────────────────────────────────────────── */
+
+@media (max-width: 1180px) {
+  .admin-app .admin-topbar-date,
+  .admin-app .admin-top-btn.is-ghost {
+    display: none;
+  }
+}
+
+@media (max-width: 980px) {
+  .admin-app {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .admin-app .admin-sidebar {
+    border-right: 0;
+    border-bottom: 1px solid var(--admin-line);
+  }
+
+  .admin-app .admin-brand {
+    padding: 0.7rem 0.9rem;
+    border-bottom: 0;
+  }
+
+  .admin-app .admin-branch {
+    margin-top: 0.6rem;
+  }
+
+  .admin-app .admin-burger {
+    border-color: var(--admin-line-strong);
+    color: var(--admin-ink);
+  }
+
+  .admin-app .admin-sidebar.is-open .admin-menu {
+    background: var(--admin-card);
+    border-top: 1px solid var(--admin-line);
+    border-bottom: 1px solid var(--admin-line);
+    box-shadow: var(--admin-shadow-lg);
+  }
+
+  .admin-app .admin-nav-link {
+    background: transparent;
+  }
+
+  .admin-app .admin-nav-link.is-active::before {
+    display: none;
+  }
+
+  .admin-app .admin-topbar {
+    min-height: 3.4rem;
+  }
+
+  .admin-app .admin-crumbs {
+    display: none;
+  }
+
+  .admin-app .admin-topbar-title {
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 560px) {
+  .admin-app .admin-live {
+    display: none;
+  }
+
+  .admin-app .admin-page-title {
+    font-size: 1.35rem;
+  }
+
+  .admin-app .admin-stat {
+    padding: 0.85rem 0.9rem;
+  }
+
+  .admin-app .admin-stat strong {
+    font-size: 1.45rem;
+  }
+
+  .admin-app .admin-panel {
+    padding: 1rem;
+  }
+
+  .admin-app .today-pulse > div {
+    min-width: 0;
+    flex: 1;
+  }
+}
+
+/* Status badges (see statusTone in order-label.ts). */
+.admin-app .admin-badge.is-good { background: var(--admin-green-soft); color: var(--admin-green); }
+.admin-app .admin-badge.is-warn { background: var(--admin-amber-soft); color: var(--admin-amber); }
+.admin-app .admin-badge.is-bad { background: var(--admin-red-soft); color: var(--admin-red); }
+.admin-app .admin-badge.is-info { background: var(--admin-blue-soft); color: var(--admin-blue); }
+.admin-app .admin-badge.is-live { background: var(--admin-ember-soft); color: var(--admin-ember-ink); }
+
+/* Quieter scrollbars inside the sidebar and wide boards. */
+.admin-app .admin-nav,
+.admin-app .admin-content,
+.admin-app .diary,
+.admin-app .pay-table-wrap {
+  scrollbar-width: thin;
+  scrollbar-color: var(--admin-line-strong) transparent;
+}
+
+/* ── Kitchen board ───────────────────────────────────────────────────────── */
+
+.admin-app .kitchen-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.admin-app .kitchen-board {
+  display: grid;
+  gap: 0.9rem;
+  margin-top: 1.25rem;
+  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+  align-items: start;
+}
+
+.admin-app .kitchen-lane {
+  --lane: var(--admin-blue);
+  padding: 0.75rem;
+  border: 1px solid var(--admin-line);
+  border-radius: var(--admin-radius);
+  background: var(--admin-subtle);
+}
+
+.admin-app .kitchen-lane.is-accepted { --lane: var(--admin-violet); }
+.admin-app .kitchen-lane.is-preparing { --lane: var(--admin-amber); }
+.admin-app .kitchen-lane.is-ready { --lane: var(--admin-green); }
+
+.admin-app .kitchen-lane-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.15rem 0.2rem 0.7rem;
+}
+
+.admin-app .kitchen-lane-head h2 {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.92rem;
+  font-weight: 650;
+}
+
+.admin-app .kitchen-lane-head h2::before {
+  content: "";
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 999px;
+  background: var(--lane);
+}
+
+.admin-app .kitchen-lane-head p {
+  margin-top: 0.1rem;
+  font-size: 0.76rem;
+  color: var(--admin-mute);
+}
+
+.admin-app .kitchen-lane-head em {
+  min-width: 1.6rem;
+  padding: 0.1rem 0.45rem;
+  border: 1px solid var(--admin-line);
+  border-radius: 999px;
+  background: var(--admin-card);
+  font-size: 0.76rem;
+  font-style: normal;
+  font-weight: 650;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.admin-app .kitchen-tickets {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.admin-app .kitchen-ticket {
+  padding: 0.8rem 0.85rem;
+  border: 1px solid var(--admin-line);
+  border-top: 3px solid var(--lane);
+  border-radius: var(--admin-radius-sm);
+  background: var(--admin-card);
+  box-shadow: var(--admin-shadow);
+}
+
+.admin-app .kitchen-ticket-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  font-size: 0.95rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.admin-app .kitchen-ticket-meta {
+  margin-top: 0.2rem;
+  font-size: 0.76rem;
+  color: var(--admin-mute);
+}
+
+.admin-app .kitchen-ticket-items {
+  display: grid;
+  gap: 0.3rem;
+  margin: 0.65rem 0 0.75rem;
+  padding-top: 0.6rem;
+  border-top: 1px dashed var(--admin-line);
+  font-size: 0.88rem;
+}
+
+.admin-app .kitchen-ticket-items b {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.admin-app .kitchen-ticket-items small {
+  color: var(--admin-mute);
+}
+
+.admin-app .kitchen-ticket-note {
+  display: block;
+  margin-top: 0.1rem;
+  font-size: 0.76rem;
+}
+
+.admin-app .kitchen-lane-empty {
+  padding: 1.1rem 0.5rem;
+  border: 1px dashed var(--admin-line-strong);
+  border-radius: var(--admin-radius-sm);
+  font-size: 0.8rem;
+  color: var(--admin-faint);
+  text-align: center;
+}
+
+@media (max-width: 980px) {
+  .admin-app .admin-burger {
+    width: 2.4rem;
+    height: 2.4rem;
+    border: 1px solid var(--admin-line-strong);
+    border-radius: var(--admin-radius-sm);
+    background: var(--admin-card);
+    color: var(--admin-ink);
+    box-shadow: var(--admin-shadow);
+  }
+}
+
+.admin-app .admin-burger svg {
+  stroke: currentColor;
+}
+
+.admin-app .admin-burger[aria-expanded="true"],
+.admin-app .admin-burger:hover {
+  background: var(--admin-hover);
+  color: var(--admin-ink);
+}
+
+.admin-login-screen .admin-field,
+.admin-login-screen .admin-field span {
+  font-family: var(--font-sans);
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+/* ── Bookings: header, day summary, list view ───────────────────────────── */
+
+.admin-app .bookings-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.admin-app .bookings-head-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.admin-app .view-switch {
+  display: inline-flex;
+  padding: 3px;
+  border: 1px solid var(--admin-line);
+  border-radius: 10px;
+  background: var(--admin-hover);
+}
+
+.admin-app .view-switch button {
+  height: 2rem;
+  padding: 0 0.9rem;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--admin-mute);
+  font-size: 0.84rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.admin-app .view-switch button.is-on {
+  background: var(--admin-card);
+  color: var(--admin-ink);
+  box-shadow: var(--admin-shadow);
+}
+
+.admin-app .view-switch button:focus-visible {
+  outline: none;
+  box-shadow: var(--admin-ring);
+}
+
+.admin-app .bookings-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9.5rem, 1fr));
+  margin-bottom: 1rem;
+}
+
+.admin-app .bookings-stats .admin-stat:hover {
+  border-color: var(--admin-line);
+  box-shadow: var(--admin-shadow);
+  transform: none;
+}
+
+.admin-app .diary-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+  padding: 0.65rem 0.75rem;
+}
+
+.admin-app .bookings-search {
+  flex: 1 1 16rem;
+  max-width: 22rem;
+  min-height: 2.1rem !important;
+  padding-left: 2.1rem !important;
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23a8a29e' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='m20 20-3.5-3.5'/%3E%3C/svg%3E")
+    no-repeat 0.65rem center / 1rem,
+    var(--admin-card) !important;
+  font-size: 0.85rem !important;
+}
+
+.admin-app .diary-toolbar .diary-filters {
+  margin-left: auto;
+}
+
+.admin-app .day-list {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.admin-app .day-slot {
+  overflow: hidden;
+  border: 1px solid var(--admin-line);
+  border-radius: var(--admin-radius);
+  background: var(--admin-card);
+  box-shadow: var(--admin-shadow);
+}
+
+.admin-app .day-slot.is-past {
+  opacity: 0.62;
+}
+
+.admin-app .day-slot.is-now {
+  border-color: rgba(196, 69, 29, 0.4);
+  box-shadow: 0 0 0 3px rgba(196, 69, 29, 0.08), var(--admin-shadow);
+}
+
+.admin-app .day-slot-head {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.6rem 1rem;
+  border-bottom: 1px solid var(--admin-line);
+  background: var(--admin-subtle);
+}
+
+.admin-app .day-slot-head time {
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  font-variant-numeric: tabular-nums;
+  color: var(--admin-ink);
+}
+
+.admin-app .day-slot-head span {
+  font-size: 0.8rem;
+  color: var(--admin-mute);
+}
+
+.admin-app .day-slot-now {
+  padding: 0.1rem 0.5rem;
+  border-radius: 999px;
+  background: var(--admin-ember);
+  color: #fff;
+  font-size: 0.7rem;
+  font-style: normal;
+  font-weight: 700;
+}
+
+.admin-app .day-slot-add {
+  margin-left: auto;
+  height: 1.8rem;
+  padding: 0 0.65rem;
+  border: 1px dashed var(--admin-line-strong);
+  border-radius: var(--admin-radius-sm);
+  background: transparent;
+  color: var(--admin-mute);
+  font-size: 0.76rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.admin-app .day-slot-add:hover {
+  border-color: var(--admin-amber);
+  background: var(--admin-amber-soft);
+  color: var(--admin-amber);
+}
+
+.admin-app .day-rows li + li {
+  border-top: 1px solid var(--admin-line);
+}
+
+.admin-app .day-row {
+  --accent: var(--admin-ember);
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 19rem) 11.5rem;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.8rem 1rem 0.8rem 1.15rem;
+  color: inherit;
+  transition: background-color 0.12s ease;
+}
+
+.admin-app .day-row::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.65rem;
+  bottom: 0.65rem;
+  width: 3px;
+  border-radius: 0 3px 3px 0;
+  background: var(--accent);
+}
+
+.admin-app .day-row.is-walkin { --accent: var(--admin-amber); }
+.admin-app .day-row.is-collect { --accent: var(--admin-teal); }
+.admin-app .day-row.is-delivery { --accent: var(--admin-blue); }
+
+.admin-app .day-row:hover {
+  background: var(--admin-subtle);
+}
+
+.admin-app .day-row:focus-visible {
+  outline: none;
+  box-shadow: inset var(--admin-ring);
+}
+
+.admin-app .day-row-name {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.95rem;
+  font-weight: 650;
+}
+
+.admin-app .day-chip {
+  padding: 0.05rem 0.45rem;
+  border-radius: 999px;
+  background: var(--admin-hover);
+  color: var(--admin-ink-2);
+  font-size: 0.68rem;
+  font-weight: 600;
+}
+
+.admin-app .day-chip.is-party {
+  background: var(--admin-violet-soft);
+  color: var(--admin-violet);
+}
+
+.admin-app .day-row-meta {
+  margin-top: 0.15rem;
+  font-size: 0.78rem;
+  color: var(--admin-mute);
+  font-variant-numeric: tabular-nums;
+}
+
+.admin-app .day-row-note,
+.admin-app .day-row-items {
+  margin-top: 0.3rem;
+  font-size: 0.8rem;
+  color: var(--admin-ink-2);
+}
+
+.admin-app .day-row-note {
+  font-style: italic;
+}
+
+.admin-app .day-row-items {
+  color: var(--admin-mute);
+}
+
+.admin-app .day-row-facts {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0.4rem;
+}
+
+.admin-app .day-kind,
+.admin-app .day-fact {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  height: 1.55rem;
+  padding: 0 0.55rem;
+  border: 1px solid var(--admin-line);
+  border-radius: 999px;
+  background: var(--admin-card);
+  font-size: 0.76rem;
+  color: var(--admin-ink-2);
+  white-space: nowrap;
+}
+
+.admin-app .day-fact b {
+  font-weight: 700;
+  color: var(--admin-ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.admin-app .day-kind {
+  border-color: transparent;
+  background: var(--admin-ember-soft);
+  color: var(--admin-ember-ink);
+  font-weight: 600;
+}
+
+.admin-app .day-kind.is-walkin { background: var(--admin-amber-soft); color: var(--admin-amber); }
+.admin-app .day-kind.is-collect { background: var(--admin-teal-soft); color: var(--admin-teal); }
+
+.admin-app .day-row-status {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.4rem;
+  min-width: 11rem;
+}
+
+.admin-app .day-row-open {
+  margin-left: 0.25rem;
+  color: var(--admin-faint);
+  transition: transform 0.15s ease, color 0.15s ease;
+}
+
+.admin-app .day-row:hover .day-row-open {
+  color: var(--admin-ember);
+  transform: translateX(2px);
+}
+
+.admin-app .day-list-empty {
+  padding: 3rem 1rem;
+  border: 1px dashed var(--admin-line-strong);
+  border-radius: var(--admin-radius);
+  background: var(--admin-card);
+  text-align: center;
+  color: var(--admin-mute);
+  font-size: 0.88rem;
+}
+
+.admin-app .day-list-empty-title {
+  margin-bottom: 0.3rem;
+  font-size: 1rem;
+  font-weight: 650;
+  color: var(--admin-ink);
+}
+
+@media (max-width: 860px) {
+  .admin-app .day-row {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.5rem;
+  }
+
+  .admin-app .day-row-facts,
+  .admin-app .day-row-status {
+    justify-content: flex-start;
+    min-width: 0;
+  }
+
+  .admin-app .day-row-open {
+    display: none;
+  }
+
+  .admin-app .diary-toolbar .diary-filters {
+    margin-left: 0;
+  }
+
+  .admin-app .bookings-search {
+    max-width: none;
+  }
+}
+
+/* ══ Colourful theme ═══════════════════════════════════════════════════════
+ * Gradient header, colour-coded navigation, bold gradient stat tiles,
+ * gradient primary buttons and mini charts. Builds on the tokens above.
+ * ════════════════════════════════════════════════════════════════════════ */
+
+/* Navigation colours, one per section. */
+.admin-app .tone-orange { --nav: #f97316; --nav-soft: #fff1e6; }
+.admin-app .tone-rose { --nav: #f43f5e; --nav-soft: #ffe8ec; }
+.admin-app .tone-teal { --nav: #0d9488; --nav-soft: #e0f5f2; }
+.admin-app .tone-amber { --nav: #d97706; --nav-soft: #fef3dc; }
+.admin-app .tone-violet { --nav: #8b5cf6; --nav-soft: #efe9ff; }
+.admin-app .tone-sky { --nav: #0ea5e9; --nav-soft: #e2f4fd; }
+.admin-app .tone-indigo { --nav: #6366f1; --nav-soft: #e9eafe; }
+.admin-app .tone-red { --nav: #ef4444; --nav-soft: #feeaea; }
+.admin-app .tone-emerald { --nav: #10b981; --nav-soft: #e1f8ef; }
+.admin-app .tone-pink { --nav: #ec4899; --nav-soft: #fde8f3; }
+.admin-app .tone-yellow { --nav: #ca8a04; --nav-soft: #fdf6d8; }
+.admin-app .tone-cyan { --nav: #06b6d4; --nav-soft: #e0f8fc; }
+.admin-app .tone-slate { --nav: #64748b; --nav-soft: #eef1f5; }
+
+.admin-app .admin-sidebar {
+  border-right: 1px solid var(--admin-line);
+  background: #ffffff;
+}
+
+.admin-app .admin-mark,
+.admin-login-screen .admin-mark {
+  border-radius: 11px;
+  background: var(--admin-gradient);
+  box-shadow: 0 6px 16px rgba(244, 63, 94, 0.3);
+}
+
+.admin-app .admin-nav-label {
+  color: var(--admin-faint);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.admin-app .admin-nav-link {
+  gap: 0.7rem;
+  min-height: 2.45rem;
+  padding: 0.3rem 0.55rem;
+  border-radius: 12px;
+}
+
+.admin-app .admin-nav-icon {
+  display: grid;
+  place-items: center;
+  width: 1.85rem;
+  height: 1.85rem;
+  flex-shrink: 0;
+  border-radius: 9px;
+  background: var(--nav-soft, var(--admin-hover));
+  color: var(--nav, var(--admin-mute));
+  transition: background 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.admin-app .admin-nav-link svg,
+.admin-app .admin-nav-link:hover svg {
+  width: 1.05rem;
+  height: 1.05rem;
+  color: inherit;
+  stroke-width: 2;
+}
+
+.admin-app .admin-nav-link:hover {
+  background: var(--admin-hover);
+}
+
+.admin-app .admin-nav-link.is-active {
+  background: var(--admin-gradient);
+  color: #fff;
+  font-weight: 650;
+  box-shadow: 0 8px 20px rgba(244, 63, 94, 0.25);
+}
+
+.admin-app .admin-nav-link.is-active::before {
+  display: none;
+}
+
+.admin-app .admin-nav-link.is-active .admin-nav-icon {
+  background: rgba(255, 255, 255, 0.22);
+  color: #fff;
+}
+
+.admin-app .admin-nav-link.is-active .admin-nav-both {
+  background: rgba(255, 255, 255, 0.22);
+  color: #fff;
+}
+
+.admin-app .admin-nav-link.is-active .admin-nav-alert {
+  background: #fff;
+  color: var(--admin-ember);
+}
+
+.admin-app .admin-avatar {
+  background: var(--admin-gradient);
+  color: #fff;
+}
+
+/* Gradient header on every page. */
+.admin-app .admin-topbar {
+  position: relative;
+  overflow: hidden;
+  min-height: 4.4rem;
+  border-bottom: 0;
+  background: var(--admin-gradient);
+  color: #fff;
+  backdrop-filter: none;
+}
+
+.admin-app .admin-topbar::after {
+  content: "";
+  position: absolute;
+  right: -4rem;
+  top: -6rem;
+  width: 16rem;
+  height: 16rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+  pointer-events: none;
+}
+
+.admin-app .admin-topbar > * {
+  position: relative;
+  z-index: 1;
+}
+
+.admin-app .admin-crumbs,
+.admin-app .admin-crumbs span:first-child,
+.admin-app .admin-topbar-date {
+  color: rgba(255, 255, 255, 0.82);
+}
+
+.admin-app .admin-topbar-title {
+  font-size: 1.25rem;
+  color: #fff;
+}
+
+.admin-app .admin-live {
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+}
+
+.admin-app .admin-top-btn,
+.admin-app .admin-top-btn:hover {
+  border-color: #fff;
+  background: #fff;
+  color: var(--admin-ember-ink);
+  box-shadow: 0 6px 16px rgba(22, 24, 39, 0.15);
+}
+
+.admin-app .admin-top-btn:hover {
+  background: #fff6f2;
+}
+
+.admin-app .admin-top-btn.is-ghost {
+  border-color: rgba(255, 255, 255, 0.5);
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  box-shadow: none;
+}
+
+.admin-app .admin-top-btn.is-ghost:hover {
+  background: rgba(255, 255, 255, 0.22);
+}
+
+/* Bold gradient stat tiles. */
+.admin-app .admin-stat {
+  overflow: hidden;
+  border: 0;
+  border-top: 0;
+  background: var(--tile, var(--admin-gradient));
+  color: #fff;
+  box-shadow: 0 10px 24px var(--tile-shadow, rgba(244, 63, 94, 0.22));
+}
+
+.admin-app .admin-stat::after {
+  content: "";
+  position: absolute;
+  right: -1.6rem;
+  bottom: -2.2rem;
+  width: 6.5rem;
+  height: 6.5rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.14);
+  pointer-events: none;
+}
+
+.admin-app .admin-stat:hover {
+  border-color: transparent;
+  box-shadow: 0 14px 30px var(--tile-shadow, rgba(244, 63, 94, 0.3));
+  transform: translateY(-2px);
+}
+
+.admin-app .admin-stat.is-ember { --tile: linear-gradient(135deg, #ff8a4c, #e8452d); --tile-shadow: rgba(232, 69, 45, 0.28); }
+.admin-app .admin-stat.is-gold { --tile: linear-gradient(135deg, #f5a524, #e2650f); --tile-shadow: rgba(226, 101, 15, 0.26); }
+.admin-app .admin-stat.is-forest { --tile: linear-gradient(135deg, #22c38e, #0b8a5f); --tile-shadow: rgba(11, 138, 95, 0.26); }
+.admin-app .admin-stat.is-teal { --tile: linear-gradient(135deg, #14b8c4, #0d7f8a); --tile-shadow: rgba(13, 127, 138, 0.26); }
+.admin-app .admin-stat.is-navy { --tile: linear-gradient(135deg, #5b8cff, #3b4fd8); --tile-shadow: rgba(59, 79, 216, 0.26); }
+.admin-app .admin-stat.is-wine { --tile: linear-gradient(135deg, #a77bff, #7039e0); --tile-shadow: rgba(112, 57, 224, 0.26); }
+.admin-app .admin-stat.is-amber { --tile: linear-gradient(135deg, #f472b6, #db2777); --tile-shadow: rgba(219, 39, 119, 0.24); }
+.admin-app .admin-stat.is-slate { --tile: linear-gradient(135deg, #7c8aa5, #4b5872); --tile-shadow: rgba(75, 88, 114, 0.24); }
+
+.admin-app .admin-stat p:first-child,
+.admin-app .admin-stat strong,
+.admin-app .admin-stat em {
+  position: relative;
+  z-index: 1;
+  color: #fff;
+}
+
+.admin-app .admin-stat p:first-child {
+  font-weight: 600;
+  opacity: 0.95;
+}
+
+.admin-app .admin-stat p:first-child::before {
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.28);
+}
+
+.admin-app .admin-stat strong {
+  font-size: 2rem;
+}
+
+.admin-app .admin-stat em {
+  opacity: 0.85;
+}
+
+.admin-app .bookings-stats .admin-stat:hover {
+  box-shadow: 0 10px 24px var(--tile-shadow, rgba(244, 63, 94, 0.22));
+  transform: none;
+}
+
+/* Today: summary chips become soft white cards with a coloured number. */
+.admin-app .today-pulse > div {
+  border: 0;
+  border-radius: 14px;
+  box-shadow: var(--admin-shadow);
+}
+
+.admin-app .today-pulse strong {
+  background: var(--admin-gradient);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Panels: borderless white cards with soft shadows. */
+.admin-app .admin-panel,
+.admin-app .day-slot,
+.admin-app .diary,
+.admin-app .diary-toolbar,
+.admin-app .menu-group,
+.admin-app .pay-table-wrap,
+.admin-app .order-board-card,
+.admin-app .track-card,
+.admin-app .pay-desk-card,
+.admin-app .settings-hours-card,
+.admin-app .qr-card,
+.admin-app .gallery-admin-card,
+.admin-app .stripe-desk-bar {
+  border-color: transparent;
+}
+
+.admin-app .admin-panel {
+  padding: 1.25rem 1.35rem;
+}
+
+.admin-app .today-panel-head h2,
+.admin-app .today-panel-head h3 {
+  font-size: 1.05rem;
+}
+
+.admin-app .track-lane,
+.admin-app .kitchen-lane {
+  border-color: transparent;
+  background: #eef0f7;
+}
+
+/* Primary buttons and active filters use the gradient. */
+.admin-app .btn-ember,
+.admin-login-screen .btn-ember {
+  border: 0;
+  background: var(--admin-gradient);
+  box-shadow: 0 8px 18px rgba(244, 63, 94, 0.25);
+}
+
+.admin-app .btn-ember:hover,
+.admin-app .btn-ember:focus-visible,
+.admin-login-screen .btn-ember:hover {
+  border: 0;
+  background: var(--admin-gradient);
+  filter: saturate(1.1) brightness(0.96);
+}
+
+.admin-app .diary-filter.is-all.is-on,
+.admin-app .diary-filters.is-orders .diary-filter.is-on,
+.admin-app .diary-week-day.is-on,
+.admin-app .diary-today {
+  border-color: transparent;
+  background: var(--admin-gradient);
+  color: #fff;
+}
+
+.admin-app .view-switch button.is-on {
+  color: var(--admin-ember-ink);
+}
+
+.admin-app .today-panel-head a {
+  border-color: transparent;
+  background: var(--admin-gradient-soft);
+  color: var(--admin-ember-ink);
+}
+
+.admin-app .today-panel-head a::after {
+  color: inherit;
+}
+
+.admin-app .today-panel-head a:hover {
+  border-color: transparent;
+  background: var(--admin-ember-soft);
+}
+
+/* ── Mini charts ─────────────────────────────────────────────────────────── */
+
+.admin-app .chart-grid {
+  display: grid;
+  gap: 0.9rem;
+  margin-top: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(20rem, 1fr));
+}
+
+.admin-app .mini-chart {
+  --bar: var(--admin-ember);
+}
+
+.admin-app .mini-chart.is-violet { --bar: #7c3aed; }
+
+.admin-app .mini-chart-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.9rem;
+}
+
+.admin-app .mini-chart-head h2 {
+  font-size: 1rem;
+  font-weight: 650;
+}
+
+.admin-app .mini-chart-head p {
+  margin-top: 0.1rem;
+  font-size: 0.78rem;
+  color: var(--admin-mute);
+}
+
+.admin-app .mini-chart-total {
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  color: var(--admin-ink);
+  white-space: nowrap;
+}
+
+.admin-app .mini-chart-total small {
+  margin-left: 0.25rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--admin-mute);
+}
+
+.admin-app .mini-chart-plot {
+  position: relative;
+  height: 9rem;
+  margin-left: 1.6rem;
+}
+
+.admin-app .mini-chart-grid {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.admin-app .mini-chart-grid span {
+  position: absolute;
+  left: 0;
+  right: 0;
+  border-top: 1px dashed var(--admin-line);
+}
+
+.admin-app .mini-chart-grid em {
+  position: absolute;
+  left: -1.6rem;
+  top: -0.5rem;
+  width: 1.3rem;
+  font-size: 0.66rem;
+  font-style: normal;
+  text-align: right;
+  color: var(--admin-faint);
+  font-variant-numeric: tabular-nums;
+}
+
+.admin-app .mini-chart-bars {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  border-bottom: 1px solid var(--admin-line-strong);
+}
+
+.admin-app .mini-chart-bar {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  flex: 1 1 0;
+  height: 100%;
+  min-width: 0;
+  padding: 0 1px;
+  border: 0;
+  background: transparent;
+  cursor: default;
+}
+
+.admin-app .mini-chart-bar i {
+  display: block;
+  width: 100%;
+  max-width: 2.2rem;
+  min-height: 2px;
+  border-radius: 4px 4px 0 0;
+  background: var(--bar);
+  transition: filter 0.12s ease, opacity 0.12s ease;
+}
+
+.admin-app .mini-chart-bar.is-zero i {
+  background: var(--admin-line-strong);
+}
+
+.admin-app .mini-chart-bar.is-current i {
+  box-shadow: 0 0 0 2px #fff, 0 0 0 4px var(--bar);
+}
+
+.admin-app .mini-chart-bars:hover .mini-chart-bar i {
+  opacity: 0.45;
+}
+
+.admin-app .mini-chart-bars:hover .mini-chart-bar:hover i,
+.admin-app .mini-chart-bar:focus-visible i {
+  opacity: 1;
+  filter: brightness(1.05);
+}
+
+.admin-app .mini-chart-bar:focus-visible {
+  outline: none;
+}
+
+.admin-app .mini-chart-tip {
+  position: absolute;
+  bottom: calc(100% + 0.4rem);
+  left: 50%;
+  z-index: 5;
+  display: none;
+  padding: 0.4rem 0.6rem;
+  border-radius: 8px;
+  background: var(--admin-ink);
+  color: #fff;
+  font-size: 0.75rem;
+  white-space: nowrap;
+  transform: translateX(-50%);
+  box-shadow: var(--admin-shadow-lg);
+  pointer-events: none;
+}
+
+.admin-app .mini-chart-tip b {
+  font-variant-numeric: tabular-nums;
+}
+
+.admin-app .mini-chart-bar:hover .mini-chart-tip,
+.admin-app .mini-chart-bar:focus-visible .mini-chart-tip {
+  display: block;
+}
+
+.admin-app .mini-chart-axis {
+  display: flex;
+  gap: 2px;
+  margin: 0.4rem 0 0 1.6rem;
+}
+
+.admin-app .mini-chart-axis span {
+  flex: 1 1 0;
+  min-width: 0;
+  overflow: hidden;
+  font-size: 0.66rem;
+  color: var(--admin-mute);
+  text-align: center;
+  white-space: nowrap;
+}
+
+.admin-app .sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+@media (max-width: 980px) {
+  .admin-app .admin-topbar {
+    min-height: 3.6rem;
+  }
+
+  .admin-app .admin-sidebar.is-open .admin-menu {
+    border-top: 0;
+  }
+}
+
+.admin-app .today-greeting {
+  margin-top: 0.9rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  background: var(--admin-gradient);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.admin-app .bookings-chart {
+  margin-bottom: 1rem;
+}
+
+.admin-app .bookings-chart .mini-chart-plot {
+  height: 7rem;
+}

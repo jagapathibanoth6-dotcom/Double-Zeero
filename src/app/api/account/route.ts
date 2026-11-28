@@ -6,7 +6,6 @@ import { getAccountOverview } from "@/lib/platform/account";
 import { hashPassword, verifyPassword } from "@/lib/platform/password";
 import { clientIp, rateLimit } from "@/lib/platform/rate-limit";
 import { formatMoney } from "@/lib/platform/money";
-import { quoteDelivery } from "@/lib/platform/orders";
 import { customerCancelBooking, customerCancelOrder } from "@/lib/platform/customer-cancel";
 import { clearCustomerCookie, getCustomer, setCustomerCookie } from "@/lib/platform/session";
 
@@ -119,54 +118,25 @@ export async function POST(request: Request) {
     if (!customer) return NextResponse.json({ error: "Sign in first." }, { status: 401 });
     const order = await db.order.findFirst({
       where: { id: String(body.orderId || ""), customerId: customer.id },
-      include: { delivery: true },
     });
     if (!order) return NextResponse.json({ error: "Order not found." }, { status: 404 });
     if (order.status === "COMPLETED" || order.status === "CANCELLED") {
       return NextResponse.json({ error: "That order is already finished." }, { status: 400 });
     }
-    const source = body.source === "DZ_DELIVERY" ? "DZ_DELIVERY" : "CLICK_COLLECT";
+    if (order.source !== "CLICK_COLLECT") {
+      return NextResponse.json({ error: "This order can't be changed online. Please call the restaurant." }, { status: 400 });
+    }
     const locationId = (body.locationId === "chorlton" ? "chorlton" : "manchester") as LocationId;
     const asap = Boolean(body.asap);
     const date = String(body.date || order.date || "");
     const time = asap ? "" : String(body.time || "").trim();
-    const address = source === "DZ_DELIVERY" ? String(body.address || "").trim() : "";
     const notes = String(body.notes || "").trim();
     if (!asap && !time) {
-      return NextResponse.json({ error: source === "DZ_DELIVERY" ? "Choose a delivery time or ASAP." : "Choose a collection time or ASAP." }, { status: 400 });
-    }
-    let deliveryFee = 0;
-    if (source === "DZ_DELIVERY") {
-      if (!address) return NextResponse.json({ error: "Add a home address." }, { status: 400 });
-      const quote = await quoteDelivery(locationId, address);
-      if (!quote.ok) return NextResponse.json({ error: quote.reason }, { status: 400 });
-      deliveryFee = quote.feePence;
-      if (order.delivery) {
-        await db.delivery.update({
-          where: { id: order.delivery.id },
-          data: { quotePence: deliveryFee, etaMinutes: quote.etaMinutes, status: "QUOTED" },
-        });
-      } else {
-        await db.delivery.create({
-          data: { orderId: order.id, quotePence: deliveryFee, etaMinutes: quote.etaMinutes, status: "QUOTED" },
-        });
-      }
-    } else if (order.delivery) {
-      await db.delivery.delete({ where: { id: order.delivery.id } });
+      return NextResponse.json({ error: "Choose a collection time or ASAP." }, { status: 400 });
     }
     await db.order.update({
       where: { id: order.id },
-      data: {
-        source,
-        locationId,
-        date,
-        time,
-        asap,
-        address,
-        notes,
-        deliveryFeePence: deliveryFee,
-        totalPence: order.subtotalPence - order.discountPence + deliveryFee,
-      },
+      data: { locationId, date, time, asap, notes },
     });
     return NextResponse.json({ ok: true });
   }

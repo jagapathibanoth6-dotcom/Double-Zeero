@@ -28,7 +28,7 @@ export function AccessCard({ access }: { access?: AccessInfo | null }) {
       </dl>
       <p className="mt-4 text-sm leading-relaxed text-cream/70">
         The same details are in your confirmation email. Check inbox and spam. Your dashboard holds table bookings, click
-        & collect, home delivery, party menus and offers.
+        & collect, party menus and offers.
       </p>
       <Link href="/account" className="btn btn-ember mt-6">
         Open my dashboard

@@ -13,37 +13,34 @@ const groups = [
   {
     label: "Overview",
     items: [
-      { href: "/admin", label: "Today", icon: "today" },
-      { href: "/admin/tables", label: "Tables", icon: "tables" },
+      { href: "/admin", label: "Today", icon: "today", tone: "orange" },
     ],
   },
   {
     label: "Front of house",
     items: [
-      { href: "/admin/bookings", label: "Bookings", icon: "bookings" },
-      { href: "/admin/collect", label: "Click & collect", icon: "collect" },
-      { href: "/admin/delivery", label: "Home delivery", icon: "delivery" },
-      { href: "/admin/orders", label: "Orders", icon: "orders" },
-      { href: "/admin/parties", label: "Parties", icon: "parties" },
-      { href: "/admin/enquiries", label: "Enquiries", icon: "enquiries" },
-      { href: "/admin/waitlist", label: "Waitlist", icon: "waitlist" },
+      { href: "/admin/bookings", label: "Bookings", icon: "bookings", tone: "rose" },
+      { href: "/admin/collect", label: "Click & collect", icon: "collect", tone: "teal" },
+      { href: "/admin/orders", label: "Orders", icon: "orders", tone: "amber" },
+      { href: "/admin/parties", label: "Parties", icon: "parties", tone: "violet" },
+      { href: "/admin/enquiries", label: "Enquiries", icon: "enquiries", tone: "sky" },
+      { href: "/admin/waitlist", label: "Waitlist", icon: "waitlist", tone: "indigo" },
     ],
   },
   {
-    label: "Kitchen & service",
+    label: "Service",
     items: [
-      { href: "/admin/pos", label: "POS", icon: "pos" },
-      { href: "/admin/kitchen", label: "Kitchen", icon: "kitchen" },
+      { href: "/admin/kitchen", label: "Kitchen", icon: "kitchen", tone: "red" },
     ],
   },
   {
     label: "Business",
     items: [
-      { href: "/admin/payments", label: "Payments", icon: "payments" },
-      { href: "/admin/customers", label: "Customers", icon: "customers", global: true },
-      { href: "/admin/menu", label: "Menu", icon: "menu" },
-      { href: "/admin/gallery", label: "Gallery", icon: "gallery", global: true },
-      { href: "/admin/settings", label: "Settings", icon: "settings" },
+      { href: "/admin/payments", label: "Payments", icon: "payments", tone: "emerald" },
+      { href: "/admin/customers", label: "Customers", icon: "customers", tone: "pink", global: true },
+      { href: "/admin/menu", label: "Menu", icon: "menu", tone: "yellow" },
+      { href: "/admin/gallery", label: "Gallery", icon: "gallery", tone: "cyan", global: true },
+      { href: "/admin/settings", label: "Settings", icon: "settings", tone: "slate" },
     ],
   },
 ];
@@ -59,8 +56,6 @@ function NavIcon({ name }: { name: string }) {
       {name === "tables" ? <path d="M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z" /> : null}
       {name === "orders" ? <path d="M7 7V6a5 5 0 0 1 10 0v1M6 7h12l-1 13H7L6 7z" /> : null}
       {name === "collect" ? <path d="M4 7h16l-1.2 12H5.2L4 7zM8 7V5a4 4 0 0 1 8 0v2M9 12h6" /> : null}
-      {name === "delivery" ? <path d="M3 7h11v10H3zM14 10h4l3 3v4h-7zM7 20a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3zM18 20a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3z" /> : null}
-      {name === "pos" ? <path d="M6 4h12v8H6zM8 16h8M9 20h6M10 12v8M14 12v8" /> : null}
       {name === "kitchen" ? <path d="M8 10c0-3 2-5 4-5s4 2 4 5v9H8v-9zM8 14h8" /> : null}
       {name === "customers" ? <path d="M12 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM5 20v-1a5 5 0 0 1 5-5h4a5 5 0 0 1 5 5v1" /> : null}
       {name === "menu" ? <path d="M6 4h12v16H6zM9 8h6M9 12h6M9 16h4" /> : null}
@@ -84,6 +79,9 @@ export function AdminShell({
 }) {
   const pathname = usePathname();
   const loc = locations[branch];
+  const isActive = (href: string) => (href === "/admin" ? pathname === "/admin" : pathname.startsWith(href));
+  const currentGroup = groups.find((group) => group.items.some((item) => isActive(item.href)));
+  const current = currentGroup?.items.find((item) => isActive(item.href));
   const [menuOpen, setMenuOpen] = useState(false);
   const [orderAlerts, setOrderAlerts] = useState(0);
 
@@ -119,10 +117,17 @@ export function AdminShell({
               <div key={group.label} className="admin-nav-group">
                 <p className="admin-nav-label">{group.label}</p>
                 {group.items.map((item) => {
-                  const active = item.href === "/admin" ? pathname === "/admin" : pathname.startsWith(item.href);
+                  const active = isActive(item.href);
                   return (
-                    <Link key={item.href} href={item.href} className={`admin-nav-link ${active ? "is-active" : ""}`}>
-                      <NavIcon name={item.icon} />
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      className={`admin-nav-link tone-${item.tone} ${active ? "is-active" : ""}`}
+                      aria-current={active ? "page" : undefined}
+                    >
+                      <span className="admin-nav-icon">
+                        <NavIcon name={item.icon} />
+                      </span>
                       <span>{item.label}</span>
                       {item.href === "/admin/orders" && orderAlerts ? <em className="admin-nav-alert">{orderAlerts}</em> : null}
                       {"global" in item && item.global ? <em className="admin-nav-both">Both</em> : null}
@@ -133,31 +138,57 @@ export function AdminShell({
             ))}
           </nav>
           <div className="admin-sidebar-foot">
-            <span className="admin-avatar">{staffName.slice(0, 1)}</span>
+            <span className="admin-avatar" aria-hidden="true">
+              {staffName.slice(0, 1).toUpperCase()}
+            </span>
             <div className="admin-staff">
               <p>{staffName}</p>
               <p>{staffRole}</p>
-              <form action="/api/admin/logout" method="post">
-                <button className="admin-signout" type="submit">
-                  Sign out
-                </button>
-              </form>
             </div>
+            <form action="/api/admin/logout" method="post">
+              <button className="admin-signout" type="submit" title="Sign out" aria-label="Sign out">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3M10 17l5-5-5-5M15 12H4" />
+                </svg>
+              </button>
+            </form>
           </div>
         </div>
       </aside>
       <div className="admin-main">
         <header className="admin-topbar">
-          <div>
-            <p className="admin-topbar-kicker">Live house</p>
-            <p className="admin-topbar-title">
-              {loc.shortName}
-              <span>{loc.headline}</span>
+          <div className="admin-topbar-left">
+            <p className="admin-crumbs">
+              <span>{loc.shortName}</span>
+              {currentGroup ? (
+                <>
+                  <span aria-hidden="true">/</span>
+                  <span>{currentGroup.label}</span>
+                </>
+              ) : null}
             </p>
+            <p className="admin-topbar-title">{current?.label || "Dashboard"}</p>
           </div>
-          <p className="admin-topbar-date">
-            {new Date().toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" })}
-          </p>
+          <div className="admin-topbar-right">
+            <span className="admin-live" title="Orders refresh automatically">
+              <i aria-hidden="true" />
+              Live
+            </span>
+            <p className="admin-topbar-date">
+              {new Date().toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" })}
+            </p>
+            <Link href="/" target="_blank" rel="noreferrer" className="admin-top-btn is-ghost">
+              View site
+            </Link>
+            {pathname.startsWith("/admin/bookings") ? null : (
+              <Link href="/admin/bookings" className="admin-top-btn">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M7 3v2M17 3v2M4 8h16M6 5h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2z" />
+                </svg>
+                Open diary
+              </Link>
+            )}
+          </div>
         </header>
         <div className="admin-content">
           {children}

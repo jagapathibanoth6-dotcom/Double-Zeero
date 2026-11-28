@@ -101,9 +101,6 @@ export function OrderTrackBoard({
                       {open && next ? (
                         <ActionButton action="order_status" body={{ orderId: order.id, status: next.status }} label={next.label} />
                       ) : null}
-                      {open && order.source === "DZ_DELIVERY" && (order.status === "READY" || order.status === "DISPATCHED") ? (
-                        <ActionButton action="uber_handover" body={{ orderId: order.id }} label="Hand to Uber" />
-                      ) : null}
                       <RefundControls payments={order.payments} orderId={order.id} compact />
                       {open ? (
                         <Link href={`/admin/orders/${order.id}/cancel`} className="btn btn-ghost">

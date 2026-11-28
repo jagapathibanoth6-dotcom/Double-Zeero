@@ -4,10 +4,10 @@ import type { LocationId } from "@/data/site";
 import { createOrder } from "@/lib/platform/orders";
 import { demoPaymentsAllowed } from "@/lib/platform/payments";
 
-/** Customers can only place collection or delivery orders from the website. */
+/** The website only takes click & collect orders. */
 function publicOrderSource(value: unknown) {
-  if (value === "CLICK_COLLECT" || value === "DZ_DELIVERY") return value;
-  throw new Error("Choose click & collect or home delivery.");
+  if (value === undefined || value === "CLICK_COLLECT") return "CLICK_COLLECT";
+  throw new Error("Online orders are click & collect only.");
 }
 import { setCustomerCookie, setPreferredLocation } from "@/lib/platform/session";
 
@@ -36,7 +36,6 @@ export async function POST(request: Request) {
       date: String(body.date || ""),
       time: String(body.time || ""),
       asap: Boolean(body.asap),
-      address: String(body.address || ""),
       offerId: body.offerId || undefined,
       via: String(body.via || ""),
       // Without Stripe, "paying" records a demo payment — only allowed outside production.

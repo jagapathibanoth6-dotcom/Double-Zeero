@@ -10,7 +10,7 @@ export async function GET(request: Request) {
   const url = new URL(request.url);
   const locationId = url.searchParams.get("locationId") || "";
   const date = url.searchParams.get("date") || todayISO();
-  const kind = url.searchParams.get("kind") === "delivery" ? "delivery" : "collect";
+  const kind = "collect"; // online orders are click & collect only
   if (locationId !== "manchester" && locationId !== "chorlton") {
     return NextResponse.json({ error: "Choose a restaurant." }, { status: 400 });
   }

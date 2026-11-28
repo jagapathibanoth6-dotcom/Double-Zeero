@@ -2,6 +2,7 @@ import { db } from "@/lib/db";
 import { locations } from "@/data/site";
 import { requireBranch } from "@/lib/platform/admin";
 import { ActionButton } from "@/components/admin/ActionButton";
+import { statusText } from "@/lib/platform/order-label";
 
 export const dynamic = "force-dynamic";
 
@@ -22,7 +23,7 @@ export default async function AdminWaitlist() {
               {r.date} {r.time} · {r.guests} pax
             </p>
             <p className="text-sm text-mute">
-              {r.name} · {r.email} · {r.status}
+              {r.name} · {r.email} · {statusText(r.status)}
             </p>
             <div className="mt-3 flex flex-wrap gap-2">
               <ActionButton action="waitlist_status" body={{ id: r.id, status: "OFFERED" }} label="Offer table" />

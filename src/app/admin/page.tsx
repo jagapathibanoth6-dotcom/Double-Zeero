@@ -4,13 +4,14 @@ import { formatBookingDate, londonDayRange, londonParts, todayISO, toMinutes } f
 import { formatMoney } from "@/lib/platform/money";
 import { ensureOrderVia } from "@/lib/platform/orders";
 import { locations } from "@/data/site";
-import { isISODate } from "@/lib/platform/diary";
-import { requireBranch } from "@/lib/platform/admin";
+import { isISODate, shiftISO } from "@/lib/platform/diary";
+import { diaryHoursLive } from "@/lib/platform/diary-live";
+import { MiniBarChart, type MiniBarPoint } from "@/components/admin/MiniBarChart";
+import { requireBranch, requireStaff } from "@/lib/platform/admin";
 import { PayBadge } from "@/components/admin/PayBadge";
 import { paySummary } from "@/lib/platform/pay";
 import { DateNav } from "@/components/admin/DateNav";
-import { TableBoard } from "@/components/admin/TableBoard";
-import { orderTypeLabel } from "@/lib/platform/order-label";
+import { orderTypeLabel, statusText, statusTone } from "@/lib/platform/order-label";
 import { viaLabel } from "@/lib/platform/via";
 
 export const dynamic = "force-dynamic";
@@ -21,6 +22,7 @@ export default async function AdminHome({
   searchParams: Promise<{ date?: string }>;
 }) {
   const branch = await requireBranch();
+  const staff = await requireStaff();
   await ensureOrderVia();
   const params = await searchParams;
   const today = todayISO();
@@ -31,7 +33,8 @@ export default async function AdminHome({
   const nowMins = toMinutes(`${now.hour}:${now.minute}`);
   const loc = locations[branch];
 
-  const [bookings, orders, enquiries, waitlist, tables] = await Promise.all([
+  const weekStart = shiftISO(date, -6);
+  const [bookings, orders, enquiries, waitlist, week, hours] = await Promise.all([
     db.booking.findMany({
       where: { locationId: branch, date, status: { notIn: ["CANCELLED", "DECLINED"] } },
       include: {
@@ -58,7 +61,12 @@ export default async function AdminHome({
       where: { locationId: branch, status: "WAITING", date },
       orderBy: { time: "asc" },
     }),
-    db.table.findMany({ where: { locationId: branch }, orderBy: [{ y: "asc" }, { x: "asc" }, { code: "asc" }] }),
+    db.booking.groupBy({
+      by: ["date"],
+      where: { locationId: branch, date: { gte: weekStart, lte: date }, status: { notIn: ["CANCELLED", "DECLINED"] } },
+      _count: { _all: true },
+    }),
+    diaryHoursLive(branch, date),
   ]);
 
   const parties = bookings.filter((b) => b.party).length;
@@ -71,24 +79,40 @@ export default async function AdminHome({
     : [];
   const upcoming = bookings.filter((b) => !isToday || toMinutes(b.time) >= nowMins);
   const next = upcoming[0] || null;
-  const activeTables = tables.filter((table) => table.active);
-  const taken = new Set(
-    inHouse.flatMap((b) => b.tableCodes.split(",").map((code) => code.trim()).filter(Boolean)),
-  );
   const liveOrders = orders.filter((o) => o.status !== "PENDING_PAY");
   const kitchen = liveOrders.filter((o) => ["NEW", "ACCEPTED", "PREPARING", "READY"].includes(o.status));
   const revenue = liveOrders.reduce((sum, o) => sum + o.totalPence, 0);
+
+  // Charts: covers per hour for this day, and bookings over the last 7 days.
+  const openHour = hours ? Math.floor(toMinutes(hours.open) / 60) : 12;
+  const closeHour = hours ? Math.ceil(toMinutes(hours.close) / 60) : 22;
+  const coversByHour: MiniBarPoint[] = [];
+  for (let hour = openHour; hour < Math.max(closeHour, openHour + 1); hour += 1) {
+    const inHour = bookings.filter((b) => Math.floor(toMinutes(b.time) / 60) === hour);
+    const label = `${String(hour).padStart(2, "0")}:00`;
+    coversByHour.push({
+      label: String(hour).padStart(2, "0"),
+      value: inHour.reduce((sum, b) => sum + b.guests, 0),
+      detail: `${label} · ${inHour.length} ${inHour.length === 1 ? "booking" : "bookings"}`,
+      current: isToday && Math.floor(nowMins / 60) === hour,
+    });
+  }
+  const perDay = new Map(week.map((row) => [row.date, row._count._all]));
+  const bookingsByDay: MiniBarPoint[] = Array.from({ length: 7 }, (_, index) => {
+    const day = shiftISO(weekStart, index);
+    const [y, m, d] = day.split("-").map(Number);
+    const weekday = new Date(Date.UTC(y, m - 1, d, 12)).toLocaleDateString("en-GB", { weekday: "short", timeZone: "UTC" });
+    return { label: weekday, value: perDay.get(day) || 0, detail: formatBookingDate(day), current: day === date };
+  });
 
   const cards = [
     { href: "/admin/bookings", label: "Bookings", value: bookings.length, note: `${covers} covers`, tone: "ember" },
     { href: "/admin/orders", label: "Orders", value: liveOrders.length, note: formatMoney(revenue), tone: "gold" },
     { href: "/admin/kitchen", label: "Kitchen", value: kitchen.length, note: "tickets open", tone: "forest" },
     { href: "/admin/collect", label: "Collection", value: liveOrders.filter((o) => o.source === "CLICK_COLLECT").length, note: "click & collect", tone: "teal" },
-    { href: "/admin/delivery", label: "Delivery", value: liveOrders.filter((o) => o.source === "DZ_DELIVERY").length, note: "out for drop", tone: "navy" },
     { href: "/admin/parties", label: "Parties", value: parties, note: "large groups", tone: "wine" },
     { href: "/admin/enquiries", label: "Enquiries", value: enquiries.length, note: "need a reply", tone: "amber" },
     { href: "/admin/waitlist", label: "Waitlist", value: waitlist.length, note: "waiting this day", tone: "slate" },
-    { href: "/admin/tables", label: "Tables", value: Math.max(activeTables.length - taken.size, 0), note: `${taken.size} in use`, tone: "gold" },
   ];
 
   return (
@@ -96,7 +120,10 @@ export default async function AdminHome({
       <div className="today-hero">
         <div>
           <DateNav date={date} today={today} base="/admin" />
-          <h1 className="admin-page-title">{isToday ? "Today" : formatBookingDate(date)}</h1>
+          <p className="today-greeting">
+            {Number(now.hour) < 12 ? "Good morning" : Number(now.hour) < 17 ? "Good afternoon" : "Good evening"}, {staff.name.split(" ")[0]}
+          </p>
+          <h1 className="admin-page-title">{isToday ? `Today at ${loc.shortName}` : formatBookingDate(date)}</h1>
         </div>
         <div className="today-pulse">
           <div>
@@ -104,8 +131,8 @@ export default async function AdminHome({
             <strong>{inHouse.length}</strong>
           </div>
           <div>
-            <span>Tables free</span>
-            <strong>{Math.max(activeTables.length - taken.size, 0)}</strong>
+            <span>Open orders</span>
+            <strong>{kitchen.length}</strong>
           </div>
           <div>
             <span>Next seating</span>
@@ -124,18 +151,17 @@ export default async function AdminHome({
         ))}
       </div>
 
-      <div className="today-board">
-        <section className="admin-panel today-tables">
-          <div className="today-panel-head">
-            <div>
-              <h2>Tables</h2>
-              <p>Guest assigned, food ordered, and status on the floor</p>
-            </div>
-            <Link href={`/admin/tables${isToday ? "" : `?date=${date}`}`}>Open floor</Link>
-          </div>
-          <TableBoard tables={tables} bookings={bookings} nowMins={nowMins} isToday={isToday} />
-        </section>
+      <div className="chart-grid">
+        <MiniBarChart
+          title="Covers by hour"
+          subtitle={isToday ? "Guests booked in for today" : `Guests booked in for ${formatBookingDate(date)}`}
+          unit="covers"
+          data={coversByHour}
+        />
+        <MiniBarChart title="Bookings, last 7 days" subtitle="Table bookings per day, this restaurant" unit="bookings" data={bookingsByDay} tone="violet" />
+      </div>
 
+      <div className="today-board">
         <section className="admin-panel">
           <div className="today-panel-head">
             <div>
@@ -169,7 +195,7 @@ export default async function AdminHome({
                     </p>
                   </div>
                   <span>
-                    <span className="admin-badge">{live ? "In house" : b.status.replace(/_/g, " ")}</span>
+                    <span className={`admin-badge ${live ? "is-live" : statusTone(b.status)}`}>{live ? "In house" : statusText(b.status)}</span>
                     <PayBadge
                       payments={payments}
                       duePence={bill.duePence}
@@ -206,43 +232,12 @@ export default async function AdminHome({
                     </p>
                   </div>
                   <span>
-                    <span className="admin-badge">{o.status.replace(/_/g, " ")}</span>
+                    <span className={`admin-badge ${statusTone(o.status)}`}>{statusText(o.status)}</span>
                     <PayBadge payments={o.payments} label={paySummary(o.totalPence, o.payments).label} />
                   </span>
                 </Link>
               ))}
             {!liveOrders.some((o) => o.source === "CLICK_COLLECT") ? <p className="today-empty">No click & collect for this day.</p> : null}
-          </div>
-        </section>
-
-        <section className="admin-panel">
-          <div className="today-panel-head">
-            <div>
-              <h2>Home delivery</h2>
-              <p>{liveOrders.filter((o) => o.source === "DZ_DELIVERY").length} from website, restaurant pages and QR</p>
-            </div>
-            <Link href="/admin/orders">Open orders</Link>
-          </div>
-          <div className="today-lane">
-            {liveOrders
-              .filter((o) => o.source === "DZ_DELIVERY")
-              .map((o) => (
-                <Link key={o.id} href={`/admin/orders/${o.id}`} className="today-card">
-                  <time>{o.time || (o.asap ? "ASAP" : "—")}</time>
-                  <div>
-                    <p className="today-card-name">{o.name || o.ref}</p>
-                    <p className="today-card-meta">
-                      {o.ref} · {viaLabel(o.via) || "Website"}
-                      {o.address ? ` · ${o.address}` : ""}
-                    </p>
-                  </div>
-                  <span>
-                    <span className="admin-badge">{o.status.replace(/_/g, " ")}</span>
-                    <PayBadge payments={o.payments} label={paySummary(o.totalPence, o.payments).label} />
-                  </span>
-                </Link>
-              ))}
-            {!liveOrders.some((o) => o.source === "DZ_DELIVERY") ? <p className="today-empty">No home delivery for this day.</p> : null}
           </div>
         </section>
 
@@ -255,8 +250,7 @@ export default async function AdminHome({
             <Link href="/admin/kitchen">Kitchen</Link>
           </div>
           <div className="today-lane">
-            {liveOrders
-              .filter((o) => !["CLICK_COLLECT", "DZ_DELIVERY"].includes(o.source))
+            {kitchen
               .slice(0, 10)
               .map((o) => (
                 <Link key={o.id} href={`/admin/orders/${o.id}`} className="today-card">
@@ -264,11 +258,11 @@ export default async function AdminHome({
                   <div>
                     <p className="today-card-name">{o.ref}</p>
                     <p className="today-card-meta">
-                      {o.name || "Walk-in"} · {orderTypeLabel(o.source)} · {o.items.map((i) => `${i.quantity}× ${i.name}`).join(", ")}
+                      {o.name || "Guest"} · {orderTypeLabel(o.source)} · {o.items.map((i) => `${i.quantity}× ${i.name}`).join(", ")}
                     </p>
                   </div>
                   <span>
-                    <span className="admin-badge">{formatMoney(o.totalPence)} · {o.status}</span>
+                    <span className={`admin-badge ${statusTone(o.status)}`}>{formatMoney(o.totalPence)} · {statusText(o.status)}</span>
                     <PayBadge
                       payments={o.payments}
                       label={`${paySummary(o.totalPence, o.payments).label} · ${formatMoney(paySummary(o.totalPence, o.payments).leftPence)} left`}
@@ -276,9 +270,7 @@ export default async function AdminHome({
                   </span>
                 </Link>
               ))}
-            {!liveOrders.filter((o) => !["CLICK_COLLECT", "DZ_DELIVERY"].includes(o.source)).length ? (
-              <p className="today-empty">No in-house tickets for this day.</p>
-            ) : null}
+            {!kitchen.length ? <p className="today-empty">No open kitchen tickets for this day.</p> : null}
           </div>
         </section>
 

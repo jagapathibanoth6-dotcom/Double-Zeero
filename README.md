@@ -6,11 +6,13 @@ It is a single [Next.js](https://nextjs.org) app. One `npm run dev` starts all t
 
 | Part | Where in the code | URL |
 | --- | --- | --- |
-| Customer website: menus, booking, click & collect, delivery, party pre-orders, customer account | `src/app/(site)` | `/` |
-| Management dashboard: bookings diary, tables, orders, kitchen, till (POS), payments, menu, settings | `src/app/admin` | `/admin` |
+| Customer website: menus, table booking, click & collect, party pre-orders, gallery, customer account | `src/app/(site)` | `/` |
+| Management dashboard: bookings diary, click & collect, orders, kitchen board, payments, menu, settings | `src/app/admin` | `/admin` |
 | Backend API used by both | `src/app/api`, logic in `src/lib/platform` | `/api/...` |
 
-**Tech:** Next.js 15 (App Router) · React 19 · TypeScript · Tailwind CSS 4 · Prisma 6 with SQLite · Stripe · Nodemailer (SMTP) · optional ResDiary and Uber Direct.
+**Tech:** Next.js 15 (App Router) · React 19 · TypeScript · Tailwind CSS 4 · Prisma 6 with SQLite · Stripe · Nodemailer (SMTP) · optional ResDiary.
+
+**Online ordering is click & collect only.** Home delivery, the in-restaurant till (POS) and kitchen ticket printing were removed; older delivery or till orders still display in the dashboard with their original labels.
 
 ---
 
@@ -108,4 +110,4 @@ More detail: **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)**. Before launching:
 - **Two restaurants**, identified by `locationId`: `"manchester"` and `"chorlton"`. Staff work in one branch at a time (branch switch in the dashboard); dashboard actions check the record belongs to that branch.
 - **Business logic lives in `src/lib/platform/`.** API routes and pages should stay thin and call into it.
 - **Never trust the browser**: prices are recalculated on the server (`priceBasket`), and references in public links are random (`uniqueRef`).
-- **Secrets go in `.env`**, never in code. Stripe and Uber keys are entered per restaurant in *Admin → Settings*.
+- **Secrets go in `.env`**, never in code. Stripe keys are entered per restaurant in *Admin → Settings*.

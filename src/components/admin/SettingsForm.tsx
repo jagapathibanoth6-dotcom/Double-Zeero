@@ -110,9 +110,6 @@ function Toggle({
 }
 
 type HouseSettings = LocationSettings & {
-  uberKeyHint?: string;
-  uberReady?: boolean;
-  uberCustomerId?: string;
   stripeKeyHint?: string;
   stripeReady?: boolean;
   stripePublishableKey?: string;
@@ -131,8 +128,6 @@ export function SettingsForm({
   const [form, setForm] = useState(settings);
   const [hours, setHours] = useState(parseWeekHours(settings.hoursJson, defaultWeekHours(locationId, "table")));
   const [collect, setCollect] = useState(parseWeekHours(settings.collectionHoursJson, defaultWeekHours(locationId, "collection")));
-  const [uberKey, setUberKey] = useState("");
-  const [uberCustomerId, setUberCustomerId] = useState(settings.uberCustomerId || "");
   const [stripeKey, setStripeKey] = useState("");
   const [stripePublishableKey, setStripePublishableKey] = useState("");
   const [saved, setSaved] = useState("");
@@ -153,8 +148,6 @@ export function SettingsForm({
         ...form,
         hoursJson: JSON.stringify(hours),
         collectionHoursJson: JSON.stringify(collect),
-        uberApiKey: uberKey,
-        uberCustomerId,
         stripeSecretKey: stripeKey,
         stripePublishableKey,
       }),
@@ -264,16 +257,10 @@ export function SettingsForm({
         <section className="admin-panel">
           <div className="today-panel-head">
             <div>
-              <h2>Collection & delivery</h2>
-              <p>Click & collect slots and home delivery for this restaurant.</p>
+              <h2>Click & collect</h2>
+              <p>Collection slots and reminders for this restaurant.</p>
             </div>
           </div>
-          <Toggle
-            label="Home delivery"
-            hint="Take orders to the guest’s address."
-            checked={form.deliveryEnabled}
-            onChange={(next) => set("deliveryEnabled", next)}
-          />
           <div className="settings-fields">
             <Field label="Collections per slot" hint="Max click & collect orders every 15 minutes.">
               <input type="number" min={1} value={form.collectionMaxPerSlot} onChange={(e) => set("collectionMaxPerSlot", Number(e.target.value))} />
@@ -286,50 +273,6 @@ export function SettingsForm({
                 onChange={(e) => set("collectionRemindMinutes", Number(e.target.value))}
               />
             </Field>
-            <Field label="Delivery reminder" hint="Minutes before drop. Orders pings the board.">
-              <input
-                type="number"
-                min={1}
-                value={form.deliveryRemindMinutes || 20}
-                onChange={(e) => set("deliveryRemindMinutes", Number(e.target.value))}
-              />
-            </Field>
-            <Field label="Delivery fee" hint="Pounds added to the bill.">
-              <input
-                type="number"
-                min={0}
-                step="0.50"
-                value={pounds(form.deliveryFeePence)}
-                onChange={(e) => set("deliveryFeePence", Math.round(Number(e.target.value) * 100))}
-              />
-            </Field>
-            <Field label="Delivery radius" hint="Kilometres from this restaurant.">
-              <input type="number" min={1} step="0.5" value={form.deliveryRadiusKm} onChange={(e) => set("deliveryRadiusKm", Number(e.target.value))} />
-            </Field>
-          </div>
-          <div className="settings-uber">
-            <p className="settings-uber-title">Uber Direct</p>
-            <p className="settings-uber-copy">
-              {settings.uberReady
-                ? "Ready. Paste a new key only if you need to replace it."
-                : settings.uberKeyHint
-                  ? "Key saved. Add the Uber Customer ID to go live."
-                  : "Paste the Uber Direct API key. We hand the drop to Uber and get the tracking link."}
-            </p>
-            <div className="settings-fields">
-              <Field label="API key" hint={settings.uberKeyHint ? `Saved ${settings.uberKeyHint}` : "Paste from the Uber Direct dashboard."}>
-                <input
-                  type="password"
-                  autoComplete="off"
-                  value={uberKey}
-                  placeholder={settings.uberKeyHint ? "Paste to replace" : "Paste API key"}
-                  onChange={(e) => setUberKey(e.target.value)}
-                />
-              </Field>
-              <Field label="Customer ID" hint="Uber Direct customer / organisation ID.">
-                <input value={uberCustomerId} onChange={(e) => setUberCustomerId(e.target.value)} placeholder="customer_…" />
-              </Field>
-            </div>
           </div>
           <div className="settings-uber">
             <p className="settings-uber-title">Stripe</p>

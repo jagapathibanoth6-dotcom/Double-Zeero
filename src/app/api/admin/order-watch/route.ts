@@ -27,7 +27,7 @@ export async function GET() {
   const orders = await db.order.findMany({
     where: {
       locationId: branch,
-      source: { in: ["CLICK_COLLECT", "DZ_DELIVERY"] },
+      source: "CLICK_COLLECT",
       status: { notIn: ["CANCELLED", "COMPLETED", "PENDING_PAY"] },
       OR: [{ date: today }, { date: "", createdAt: { gte: start, lt: end } }],
     },
@@ -37,7 +37,7 @@ export async function GET() {
   });
 
   const alerts = orders.map((order) => {
-    const remindAt = order.source === "DZ_DELIVERY" ? settings.deliveryRemindMinutes : settings.collectionRemindMinutes;
+    const remindAt = settings.collectionRemindMinutes;
     const due = dueInMinutes(order);
     return {
       id: order.id,
@@ -58,6 +58,5 @@ export async function GET() {
   return NextResponse.json({
     alerts,
     collectionRemindMinutes: settings.collectionRemindMinutes,
-    deliveryRemindMinutes: settings.deliveryRemindMinutes,
   });
 }

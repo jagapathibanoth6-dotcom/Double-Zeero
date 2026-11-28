@@ -23,12 +23,10 @@ export function AccountDesk() {
   const [message, setMessage] = useState("");
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [manageOrder, setManageOrder] = useState<AccountOrder | null>(null);
-  const [manageSource, setManageSource] = useState("CLICK_COLLECT");
   const [manageLocation, setManageLocation] = useState<LocationId>("manchester");
   const [manageAsap, setManageAsap] = useState(false);
   const [manageDate, setManageDate] = useState("");
   const [manageTime, setManageTime] = useState("");
-  const [manageAddress, setManageAddress] = useState("");
   const [manageNotes, setManageNotes] = useState("");
   const [manageBooking, setManageBooking] = useState<AccountBooking | null>(null);
   const [manageVisit, setManageVisit] = useState<"table" | "collection">("table");
@@ -124,12 +122,10 @@ export function AccountDesk() {
     setError("");
     setManageBooking(null);
     setManageOrder(order);
-    setManageSource(order.source === "DZ_DELIVERY" ? "DZ_DELIVERY" : "CLICK_COLLECT");
     setManageLocation(order.locationId === "chorlton" ? "chorlton" : "manchester");
     setManageAsap(Boolean(order.asap));
     setManageDate(order.date || "");
     setManageTime(order.time || "");
-    setManageAddress(order.address || "");
     setManageNotes(order.notes || "");
   }
 
@@ -140,12 +136,11 @@ export function AccountDesk() {
     const ok = await post({
       action: "update_order",
       orderId: manageOrder.id,
-      source: manageSource,
+      source: "CLICK_COLLECT",
       locationId: manageLocation,
       asap: manageAsap,
       date: manageDate,
       time: manageTime,
-      address: manageAddress,
       notes: manageNotes,
     });
     if (ok) setManageOrder(null);
@@ -173,10 +168,10 @@ export function AccountDesk() {
           <div className="account-login-visual-copy">
             <p className="display text-[0.7rem] tracking-[0.28em] text-gold">Manchester · Chorlton</p>
             <h1 className="serif mt-4 text-4xl leading-tight text-cream md:text-5xl">
-              Your tables, collections and deliveries.
+              Your tables and collections.
             </h1>
             <p className="mt-4 max-w-sm text-sm leading-relaxed text-cream/75">
-              One login for bookings, click & collect, home delivery and party menus.
+              One login for bookings, click & collect and party menus.
             </p>
           </div>
         </aside>
@@ -220,7 +215,6 @@ export function AccountDesk() {
             <div className="account-login-links">
               <Link href="/book">Book a table</Link>
               <Link href="/order/collect">Click & collect</Link>
-              <Link href="/order/delivery">Home delivery</Link>
             </div>
           </form>
         </div>
@@ -246,9 +240,6 @@ export function AccountDesk() {
             </Link>
             <Link href="/order/collect" className="btn btn-ghost-light">
               Click & collect
-            </Link>
-            <Link href="/order/delivery" className="btn btn-ghost-light">
-              Home delivery
             </Link>
             <button type="button" className="btn btn-ghost-light" onClick={openDetails}>
               Update details
@@ -381,19 +372,8 @@ export function AccountDesk() {
             <form className="account-dialog-card is-wide" onSubmit={saveOrder}>
               <p className="display text-[0.68rem] tracking-[0.2em] text-ember">Order {manageOrder.ref}</p>
               <h2 className="serif mt-2 text-3xl">Manage order</h2>
-              <p className="mt-2 text-sm text-mute">Change the type and options, or cancel for a refund while this order is still underway.</p>
+              <p className="mt-2 text-sm text-mute">Change the time, restaurant or notes, or cancel for a refund while this order is still underway.</p>
               <div className="account-dialog-grid">
-                <fieldset>
-                  <legend>Type</legend>
-                  <div className="mt-2 grid grid-cols-2 gap-2">
-                    <button type="button" className="slot" aria-pressed={manageSource === "CLICK_COLLECT"} onClick={() => setManageSource("CLICK_COLLECT")}>
-                      Click & collect
-                    </button>
-                    <button type="button" className="slot" aria-pressed={manageSource === "DZ_DELIVERY"} onClick={() => setManageSource("DZ_DELIVERY")}>
-                      Home delivery
-                    </button>
-                  </div>
-                </fieldset>
                 <fieldset>
                   <legend>Restaurant</legend>
                   <div className="mt-2 grid grid-cols-2 gap-2">
@@ -416,15 +396,9 @@ export function AccountDesk() {
                   <input type="checkbox" checked={manageAsap} onChange={(e) => setManageAsap(e.target.checked)} />
                   ASAP
                 </label>
-                {manageSource === "DZ_DELIVERY" ? (
-                  <div className="is-wide">
-                    <label htmlFor="manage-address">Home address</label>
-                    <textarea id="manage-address" value={manageAddress} onChange={(e) => setManageAddress(e.target.value)} required />
-                  </div>
-                ) : null}
                 <div className="is-wide">
                   <label htmlFor="manage-notes">Options / notes</label>
-                  <textarea id="manage-notes" value={manageNotes} onChange={(e) => setManageNotes(e.target.value)} placeholder="Extra hot, leave at the door…" />
+                  <textarea id="manage-notes" value={manageNotes} onChange={(e) => setManageNotes(e.target.value)} placeholder="Extra hot, no basil…" />
                 </div>
                 <PayRefundBox
                   duePence={manageOrder.totalPence}

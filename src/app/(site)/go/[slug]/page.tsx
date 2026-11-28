@@ -16,7 +16,6 @@ export default async function QrGoPage({ params }: { params: Promise<{ slug: str
   const actions = [
     { href: addVia(loc.bookingPath, via), kicker: "Inside", title: "Book a table", copy: `Reserve a table at ${loc.shortName}.` },
     { href: addVia(`/order/collect?location=${loc.id}`, via), kicker: "Takeaway", title: "Click & collect", copy: "Order now and collect from the counter." },
-    { href: addVia(`/order/delivery?location=${loc.id}`, via), kicker: "To your door", title: "Home delivery", copy: "Order from this restaurant and have it delivered." },
   ];
 
   return (

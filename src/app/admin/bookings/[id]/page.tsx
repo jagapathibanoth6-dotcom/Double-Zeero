@@ -13,6 +13,7 @@ import { PayBadge } from "@/components/admin/PayBadge";
 import { PaymentBill } from "@/components/admin/PaymentBill";
 import { OrderItems } from "@/components/admin/OrderItems";
 import { isPaid, paySummary } from "@/lib/platform/pay";
+import { statusText, statusTone } from "@/lib/platform/order-label";
 
 export const dynamic = "force-dynamic";
 
@@ -62,7 +63,7 @@ export default async function AdminBookingRecord({ params }: { params: Promise<{
           </p>
         </div>
         <span>
-          <span className="admin-badge">{booking.status.replace(/_/g, " ")}</span>
+          <span className={`admin-badge ${statusTone(booking.status)}`}>{statusText(booking.status)}</span>
           <PayBadge payments={payments} paid={bill.label === "Paid"} />
         </span>
       </div>
