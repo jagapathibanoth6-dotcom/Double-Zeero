@@ -4,8 +4,10 @@ import { formatBookingDate, londonDayRange, londonParts, todayISO, toMinutes } f
 import { formatMoney } from "@/lib/platform/money";
 import { ensureOrderVia } from "@/lib/platform/orders";
 import { locations } from "@/data/site";
-import { isISODate } from "@/lib/platform/diary";
-import { requireBranch } from "@/lib/platform/admin";
+import { isISODate, shiftISO } from "@/lib/platform/diary";
+import { diaryHoursLive } from "@/lib/platform/diary-live";
+import { MiniBarChart, type MiniBarPoint } from "@/components/admin/MiniBarChart";
+import { requireBranch, requireStaff } from "@/lib/platform/admin";
 import { PayBadge } from "@/components/admin/PayBadge";
 import { paySummary } from "@/lib/platform/pay";
 import { DateNav } from "@/components/admin/DateNav";
@@ -20,6 +22,7 @@ export default async function AdminHome({
   searchParams: Promise<{ date?: string }>;
 }) {
   const branch = await requireBranch();
+  const staff = await requireStaff();
   await ensureOrderVia();
   const params = await searchParams;
   const today = todayISO();
@@ -30,7 +33,8 @@ export default async function AdminHome({
   const nowMins = toMinutes(`${now.hour}:${now.minute}`);
   const loc = locations[branch];
 
-  const [bookings, orders, enquiries, waitlist] = await Promise.all([
+  const weekStart = shiftISO(date, -6);
+  const [bookings, orders, enquiries, waitlist, week, hours] = await Promise.all([
     db.booking.findMany({
       where: { locationId: branch, date, status: { notIn: ["CANCELLED", "DECLINED"] } },
       include: {
@@ -57,6 +61,12 @@ export default async function AdminHome({
       where: { locationId: branch, status: "WAITING", date },
       orderBy: { time: "asc" },
     }),
+    db.booking.groupBy({
+      by: ["date"],
+      where: { locationId: branch, date: { gte: weekStart, lte: date }, status: { notIn: ["CANCELLED", "DECLINED"] } },
+      _count: { _all: true },
+    }),
+    diaryHoursLive(branch, date),
   ]);
 
   const parties = bookings.filter((b) => b.party).length;
@@ -73,6 +83,28 @@ export default async function AdminHome({
   const kitchen = liveOrders.filter((o) => ["NEW", "ACCEPTED", "PREPARING", "READY"].includes(o.status));
   const revenue = liveOrders.reduce((sum, o) => sum + o.totalPence, 0);
 
+  // Charts: covers per hour for this day, and bookings over the last 7 days.
+  const openHour = hours ? Math.floor(toMinutes(hours.open) / 60) : 12;
+  const closeHour = hours ? Math.ceil(toMinutes(hours.close) / 60) : 22;
+  const coversByHour: MiniBarPoint[] = [];
+  for (let hour = openHour; hour < Math.max(closeHour, openHour + 1); hour += 1) {
+    const inHour = bookings.filter((b) => Math.floor(toMinutes(b.time) / 60) === hour);
+    const label = `${String(hour).padStart(2, "0")}:00`;
+    coversByHour.push({
+      label: String(hour).padStart(2, "0"),
+      value: inHour.reduce((sum, b) => sum + b.guests, 0),
+      detail: `${label} · ${inHour.length} ${inHour.length === 1 ? "booking" : "bookings"}`,
+      current: isToday && Math.floor(nowMins / 60) === hour,
+    });
+  }
+  const perDay = new Map(week.map((row) => [row.date, row._count._all]));
+  const bookingsByDay: MiniBarPoint[] = Array.from({ length: 7 }, (_, index) => {
+    const day = shiftISO(weekStart, index);
+    const [y, m, d] = day.split("-").map(Number);
+    const weekday = new Date(Date.UTC(y, m - 1, d, 12)).toLocaleDateString("en-GB", { weekday: "short", timeZone: "UTC" });
+    return { label: weekday, value: perDay.get(day) || 0, detail: formatBookingDate(day), current: day === date };
+  });
+
   const cards = [
     { href: "/admin/bookings", label: "Bookings", value: bookings.length, note: `${covers} covers`, tone: "ember" },
     { href: "/admin/orders", label: "Orders", value: liveOrders.length, note: formatMoney(revenue), tone: "gold" },
@@ -88,7 +120,10 @@ export default async function AdminHome({
       <div className="today-hero">
         <div>
           <DateNav date={date} today={today} base="/admin" />
-          <h1 className="admin-page-title">{isToday ? "Today" : formatBookingDate(date)}</h1>
+          <p className="today-greeting">
+            {Number(now.hour) < 12 ? "Good morning" : Number(now.hour) < 17 ? "Good afternoon" : "Good evening"}, {staff.name.split(" ")[0]}
+          </p>
+          <h1 className="admin-page-title">{isToday ? `Today at ${loc.shortName}` : formatBookingDate(date)}</h1>
         </div>
         <div className="today-pulse">
           <div>
@@ -114,6 +149,16 @@ export default async function AdminHome({
             <em>{card.note}</em>
           </Link>
         ))}
+      </div>
+
+      <div className="chart-grid">
+        <MiniBarChart
+          title="Covers by hour"
+          subtitle={isToday ? "Guests booked in for today" : `Guests booked in for ${formatBookingDate(date)}`}
+          unit="covers"
+          data={coversByHour}
+        />
+        <MiniBarChart title="Bookings, last 7 days" subtitle="Table bookings per day, this restaurant" unit="bookings" data={bookingsByDay} tone="violet" />
       </div>
 
       <div className="today-board">

@@ -7,6 +7,7 @@ import { BOOKING_SLOT, diarySlots, shiftISO } from "@/lib/platform/diary";
 import { BookingDiary, type SlotItem, type SlotKind } from "@/components/admin/BookingDiary";
 import { WalkInForm } from "@/components/admin/WalkInForm";
 import { BookingDayList } from "@/components/admin/BookingDayList";
+import { MiniBarChart, type MiniBarPoint } from "@/components/admin/MiniBarChart";
 
 type View = "list" | "timeline";
 const VIEW_KEY = "dz-bookings-view";
@@ -124,6 +125,25 @@ export function DiaryToolbar({
     ];
   }, [items, counts, live, nowMins]);
 
+  // Covers per hour across opening hours (tables and walk-ins, not collections).
+  const coversByHour = useMemo<MiniBarPoint[]>(() => {
+    if (!open || !close) return [];
+    const first = Math.floor(toMinutes(open) / 60);
+    const last = Math.max(first + 1, Math.ceil(toMinutes(close) / 60));
+    const seated = items.filter((item) => item.kind !== "collect" && item.time !== "ASAP");
+    return Array.from({ length: last - first }, (_, index) => {
+      const hour = first + index;
+      const inHour = seated.filter((item) => Math.floor(toMinutes(item.time) / 60) === hour);
+      const label = String(hour).padStart(2, "0");
+      return {
+        label,
+        value: inHour.reduce((sum, item) => sum + (item.guests || 0), 0),
+        detail: `${label}:00 · ${inHour.length} ${inHour.length === 1 ? "booking" : "bookings"}`,
+        current: Boolean(live) && nowMins >= 0 && Math.floor(nowMins / 60) === hour,
+      };
+    });
+  }, [items, open, close, live, nowMins]);
+
   function addWalkIn(time?: string) {
     const nearest = time || headTime || walkInSlots[0];
     if (!nearest) return;
@@ -176,6 +196,12 @@ export function DiaryToolbar({
           </div>
         ))}
       </div>
+
+      {coversByHour.length ? (
+        <div className="bookings-chart">
+          <MiniBarChart title="Covers by hour" subtitle="Guests seated across the day" unit="covers" data={coversByHour} />
+        </div>
+      ) : null}
 
       <div className="diary-toolbar">
         <div className="diary-date-nav">

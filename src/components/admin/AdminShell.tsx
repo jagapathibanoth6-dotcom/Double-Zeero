@@ -13,34 +13,34 @@ const groups = [
   {
     label: "Overview",
     items: [
-      { href: "/admin", label: "Today", icon: "today" },
+      { href: "/admin", label: "Today", icon: "today", tone: "orange" },
     ],
   },
   {
     label: "Front of house",
     items: [
-      { href: "/admin/bookings", label: "Bookings", icon: "bookings" },
-      { href: "/admin/collect", label: "Click & collect", icon: "collect" },
-      { href: "/admin/orders", label: "Orders", icon: "orders" },
-      { href: "/admin/parties", label: "Parties", icon: "parties" },
-      { href: "/admin/enquiries", label: "Enquiries", icon: "enquiries" },
-      { href: "/admin/waitlist", label: "Waitlist", icon: "waitlist" },
+      { href: "/admin/bookings", label: "Bookings", icon: "bookings", tone: "rose" },
+      { href: "/admin/collect", label: "Click & collect", icon: "collect", tone: "teal" },
+      { href: "/admin/orders", label: "Orders", icon: "orders", tone: "amber" },
+      { href: "/admin/parties", label: "Parties", icon: "parties", tone: "violet" },
+      { href: "/admin/enquiries", label: "Enquiries", icon: "enquiries", tone: "sky" },
+      { href: "/admin/waitlist", label: "Waitlist", icon: "waitlist", tone: "indigo" },
     ],
   },
   {
     label: "Service",
     items: [
-      { href: "/admin/kitchen", label: "Kitchen", icon: "kitchen" },
+      { href: "/admin/kitchen", label: "Kitchen", icon: "kitchen", tone: "red" },
     ],
   },
   {
     label: "Business",
     items: [
-      { href: "/admin/payments", label: "Payments", icon: "payments" },
-      { href: "/admin/customers", label: "Customers", icon: "customers", global: true },
-      { href: "/admin/menu", label: "Menu", icon: "menu" },
-      { href: "/admin/gallery", label: "Gallery", icon: "gallery", global: true },
-      { href: "/admin/settings", label: "Settings", icon: "settings" },
+      { href: "/admin/payments", label: "Payments", icon: "payments", tone: "emerald" },
+      { href: "/admin/customers", label: "Customers", icon: "customers", tone: "pink", global: true },
+      { href: "/admin/menu", label: "Menu", icon: "menu", tone: "yellow" },
+      { href: "/admin/gallery", label: "Gallery", icon: "gallery", tone: "cyan", global: true },
+      { href: "/admin/settings", label: "Settings", icon: "settings", tone: "slate" },
     ],
   },
 ];
@@ -122,10 +122,12 @@ export function AdminShell({
                     <Link
                       key={item.href}
                       href={item.href}
-                      className={`admin-nav-link ${active ? "is-active" : ""}`}
+                      className={`admin-nav-link tone-${item.tone} ${active ? "is-active" : ""}`}
                       aria-current={active ? "page" : undefined}
                     >
-                      <NavIcon name={item.icon} />
+                      <span className="admin-nav-icon">
+                        <NavIcon name={item.icon} />
+                      </span>
                       <span>{item.label}</span>
                       {item.href === "/admin/orders" && orderAlerts ? <em className="admin-nav-alert">{orderAlerts}</em> : null}
                       {"global" in item && item.global ? <em className="admin-nav-both">Both</em> : null}
