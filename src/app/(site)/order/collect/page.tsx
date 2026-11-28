@@ -21,7 +21,7 @@ export default async function CollectPage({
           Select a restaurant, a collection time, and your order. Collect from the counter when it is ready.
         </p>
         <div className="mt-10">
-          <OrderDesk mode="CLICK_COLLECT" seed={seed} />
+          <OrderDesk seed={seed} />
         </div>
     </SitePage>
   );

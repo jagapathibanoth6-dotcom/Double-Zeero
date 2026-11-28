@@ -99,7 +99,6 @@ export default async function AdminOrderRecord({ params }: { params: Promise<{ i
                 ) : null}
               </p>
             ) : null}
-            {open ? <ActionButton action="uber_handover" body={{ orderId: order.id }} label="Hand to Uber" /> : null}
           </div>
         ) : null}
       </section>
@@ -175,7 +174,6 @@ export default async function AdminOrderRecord({ params }: { params: Promise<{ i
                 Cancel
               </Link>
             ) : null}
-            <ActionButton action="reprint" body={{ orderId: order.id }} label="Print tickets" />
           </div>
         </section>
 

@@ -42,7 +42,6 @@ export function Header() {
     { href: current ? locations[current].menuPath : "/menu", label: "Menu" },
     { href: current ? locations[current].bookingPath : "/book", label: "Book a Table" },
     { href: "/order/collect?via=Website", label: "Click & collect" },
-    { href: "/order/delivery?via=Website", label: "Home delivery" },
     { href: "/locations", label: "Locations" },
     { href: "/about", label: "About" },
     { href: "/offers", label: "Offers" },

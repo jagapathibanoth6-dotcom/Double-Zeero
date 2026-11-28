@@ -15,7 +15,6 @@ export const settingsActions: ActionHandlers = {
     const locationId = await getStaffBranch();
     const sittingCapacity = Math.max(1, Number(body.sittingCapacity || 40));
     const collectionRemindMinutes = Math.max(1, Number(body.collectionRemindMinutes || 15));
-    const deliveryRemindMinutes = Math.max(1, Number(body.deliveryRemindMinutes || 20));
     const settings = await db.locationSettings.update({
       where: { locationId },
       data: {
@@ -32,30 +31,16 @@ export const settingsActions: ActionHandlers = {
         preorderDeadlineHours: Number(body.preorderDeadlineHours),
         waitlistEnabled: Boolean(body.waitlistEnabled),
         collectionMaxPerSlot: Number(body.collectionMaxPerSlot),
-        deliveryEnabled: Boolean(body.deliveryEnabled),
-        deliveryFeePence: Number(body.deliveryFeePence),
-        deliveryRadiusKm: Number(body.deliveryRadiusKm || 5),
         turnaroundMinutes: Number(body.turnaroundMinutes || 15),
         durationJson: String(body.durationJson || ""),
         hoursJson: String(body.hoursJson || ""),
         collectionHoursJson: String(body.collectionHoursJson || ""),
       },
     });
-    const uberCustomerId = String(body.uberCustomerId || "").trim();
-    const uberApiKey = String(body.uberApiKey || "").trim();
     const stripeSecretKey = String(body.stripeSecretKey || "").trim();
     const stripePublishableKey = String(body.stripePublishableKey || "").trim();
-    const sets = [
-      "sittingCapacity = ?",
-      "collectionRemindMinutes = ?",
-      "deliveryRemindMinutes = ?",
-      "uberCustomerId = ?",
-    ];
-    const vals: Array<string | number> = [sittingCapacity, collectionRemindMinutes, deliveryRemindMinutes, uberCustomerId];
-    if (uberApiKey) {
-      sets.push("uberApiKey = ?");
-      vals.push(uberApiKey);
-    }
+    const sets = ["sittingCapacity = ?", "collectionRemindMinutes = ?"];
+    const vals: Array<string | number> = [sittingCapacity, collectionRemindMinutes];
     if (stripeSecretKey) {
       sets.push("stripeSecretKey = ?");
       vals.push(stripeSecretKey);
@@ -67,7 +52,7 @@ export const settingsActions: ActionHandlers = {
     vals.push(locationId);
     await db.$executeRawUnsafe(`UPDATE LocationSettings SET ${sets.join(", ")} WHERE locationId = ?`, ...vals);
     return NextResponse.json({
-      settings: { ...settings, sittingCapacity, collectionRemindMinutes, deliveryRemindMinutes, uberCustomerId },
+      settings: { ...settings, sittingCapacity, collectionRemindMinutes },
     });
   },
 

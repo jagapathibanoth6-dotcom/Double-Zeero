@@ -74,7 +74,6 @@ const filters = [
   { id: "demo", label: "Till" },
   { id: "deposit", label: "Deposits" },
   { id: "collect", label: "Click & collect" },
-  { id: "delivery", label: "Home delivery" },
   { id: "booking", label: "Bookings" },
 ] as const;
 
@@ -88,7 +87,6 @@ function matches(filter: (typeof filters)[number]["id"], row: PaymentCard) {
   if (filter === "demo") return row.provider !== "STRIPE";
   if (filter === "deposit") return row.kind === "DEPOSIT";
   if (filter === "collect") return row.typeClass === "is-collect";
-  if (filter === "delivery") return row.typeClass === "is-delivery";
   if (filter === "booking") return Boolean(row.bookingId) && !row.orderId;
   return true;
 }
@@ -137,7 +135,6 @@ export function PaymentsDesk({
     demo: payments.filter((row) => matches("demo", row)).length,
     deposit: payments.filter((row) => matches("deposit", row)).length,
     collect: payments.filter((row) => matches("collect", row)).length,
-    delivery: payments.filter((row) => matches("delivery", row)).length,
     booking: payments.filter((row) => matches("booking", row)).length,
   };
 

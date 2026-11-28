@@ -21,7 +21,6 @@ const groups = [
     items: [
       { href: "/admin/bookings", label: "Bookings", icon: "bookings" },
       { href: "/admin/collect", label: "Click & collect", icon: "collect" },
-      { href: "/admin/delivery", label: "Home delivery", icon: "delivery" },
       { href: "/admin/orders", label: "Orders", icon: "orders" },
       { href: "/admin/parties", label: "Parties", icon: "parties" },
       { href: "/admin/enquiries", label: "Enquiries", icon: "enquiries" },
@@ -29,9 +28,8 @@ const groups = [
     ],
   },
   {
-    label: "Kitchen & service",
+    label: "Service",
     items: [
-      { href: "/admin/pos", label: "POS", icon: "pos" },
       { href: "/admin/kitchen", label: "Kitchen", icon: "kitchen" },
     ],
   },
@@ -58,8 +56,6 @@ function NavIcon({ name }: { name: string }) {
       {name === "tables" ? <path d="M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z" /> : null}
       {name === "orders" ? <path d="M7 7V6a5 5 0 0 1 10 0v1M6 7h12l-1 13H7L6 7z" /> : null}
       {name === "collect" ? <path d="M4 7h16l-1.2 12H5.2L4 7zM8 7V5a4 4 0 0 1 8 0v2M9 12h6" /> : null}
-      {name === "delivery" ? <path d="M3 7h11v10H3zM14 10h4l3 3v4h-7zM7 20a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3zM18 20a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3z" /> : null}
-      {name === "pos" ? <path d="M6 4h12v8H6zM8 16h8M9 20h6M10 12v8M14 12v8" /> : null}
       {name === "kitchen" ? <path d="M8 10c0-3 2-5 4-5s4 2 4 5v9H8v-9zM8 14h8" /> : null}
       {name === "customers" ? <path d="M12 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM5 20v-1a5 5 0 0 1 5-5h4a5 5 0 0 1 5 5v1" /> : null}
       {name === "menu" ? <path d="M6 4h12v16H6zM9 8h6M9 12h6M9 16h4" /> : null}
@@ -182,12 +178,14 @@ export function AdminShell({
             <Link href="/" target="_blank" rel="noreferrer" className="admin-top-btn is-ghost">
               View site
             </Link>
-            <Link href="/admin/pos" className="admin-top-btn">
-              <svg viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M12 5v14M5 12h14" />
-              </svg>
-              New order
-            </Link>
+            {pathname.startsWith("/admin/bookings") ? null : (
+              <Link href="/admin/bookings" className="admin-top-btn">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M7 3v2M17 3v2M4 8h16M6 5h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2z" />
+                </svg>
+                Open diary
+              </Link>
+            )}
           </div>
         </header>
         <div className="admin-content">

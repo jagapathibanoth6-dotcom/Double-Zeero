@@ -68,7 +68,3 @@ export const categoryOrder = ["STARTERS", "KIDS", "PIZZAS", "CALZONES", "SIDES",
 export function productPhoto(product: Product) {
   return product.photo || menuPhotoFor(product.name)?.photo || "";
 }
-
-export function joinAddress(parts: { line1: string; line2: string; city: string; postcode: string }) {
-  return [parts.line1, parts.line2, parts.city, parts.postcode].map((part) => part.trim()).filter(Boolean).join(", ");
-}

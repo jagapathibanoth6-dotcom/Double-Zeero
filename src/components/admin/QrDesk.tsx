@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 
 type QrRow = { id: string; name: string; slug: string };
 
-const NAMES = ["Book a table", "Click & collect", "Home delivery"] as const;
+const NAMES = ["Book a table", "Click & collect"] as const;
 
 function qrImage(data: string) {
   return `https://api.qrserver.com/v1/create-qr-code/?size=280x280&ecc=H&margin=8&color=23-16-12&bgcolor=255-250-242&data=${encodeURIComponent(data)}`;
@@ -64,7 +64,7 @@ export function QrDesk({
       <div className="today-panel-head">
         <div>
           <h2>QR posters</h2>
-          <p>One code per poster. Scan opens book a table, click & collect and home delivery.</p>
+          <p>One code per poster. Scan opens book a table and click & collect.</p>
         </div>
       </div>
 
@@ -113,9 +113,6 @@ export function QrDesk({
                   </p>
                   <p className="qr-link">
                     Collect · {base.replace(/\/+$/, "")}/order/collect?location={locationId}&via={encodeURIComponent(code.name)}
-                  </p>
-                  <p className="qr-link">
-                    Delivery · {base.replace(/\/+$/, "")}/order/delivery?location={locationId}&via={encodeURIComponent(code.name)}
                   </p>
                   <div className="qr-actions">
                     <a href={href} target="_blank" rel="noreferrer">

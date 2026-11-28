@@ -78,7 +78,6 @@ export default async function AdminHome({
     { href: "/admin/orders", label: "Orders", value: liveOrders.length, note: formatMoney(revenue), tone: "gold" },
     { href: "/admin/kitchen", label: "Kitchen", value: kitchen.length, note: "tickets open", tone: "forest" },
     { href: "/admin/collect", label: "Collection", value: liveOrders.filter((o) => o.source === "CLICK_COLLECT").length, note: "click & collect", tone: "teal" },
-    { href: "/admin/delivery", label: "Delivery", value: liveOrders.filter((o) => o.source === "DZ_DELIVERY").length, note: "out for drop", tone: "navy" },
     { href: "/admin/parties", label: "Parties", value: parties, note: "large groups", tone: "wine" },
     { href: "/admin/enquiries", label: "Enquiries", value: enquiries.length, note: "need a reply", tone: "amber" },
     { href: "/admin/waitlist", label: "Waitlist", value: waitlist.length, note: "waiting this day", tone: "slate" },
@@ -200,45 +199,13 @@ export default async function AdminHome({
         <section className="admin-panel">
           <div className="today-panel-head">
             <div>
-              <h2>Home delivery</h2>
-              <p>{liveOrders.filter((o) => o.source === "DZ_DELIVERY").length} from website, restaurant pages and QR</p>
-            </div>
-            <Link href="/admin/orders">Open orders</Link>
-          </div>
-          <div className="today-lane">
-            {liveOrders
-              .filter((o) => o.source === "DZ_DELIVERY")
-              .map((o) => (
-                <Link key={o.id} href={`/admin/orders/${o.id}`} className="today-card">
-                  <time>{o.time || (o.asap ? "ASAP" : "—")}</time>
-                  <div>
-                    <p className="today-card-name">{o.name || o.ref}</p>
-                    <p className="today-card-meta">
-                      {o.ref} · {viaLabel(o.via) || "Website"}
-                      {o.address ? ` · ${o.address}` : ""}
-                    </p>
-                  </div>
-                  <span>
-                    <span className={`admin-badge ${statusTone(o.status)}`}>{statusText(o.status)}</span>
-                    <PayBadge payments={o.payments} label={paySummary(o.totalPence, o.payments).label} />
-                  </span>
-                </Link>
-              ))}
-            {!liveOrders.some((o) => o.source === "DZ_DELIVERY") ? <p className="today-empty">No home delivery for this day.</p> : null}
-          </div>
-        </section>
-
-        <section className="admin-panel">
-          <div className="today-panel-head">
-            <div>
               <h2>Kitchen</h2>
               <p>{kitchen.length} open · {formatMoney(revenue)} taken</p>
             </div>
             <Link href="/admin/kitchen">Kitchen</Link>
           </div>
           <div className="today-lane">
-            {liveOrders
-              .filter((o) => !["CLICK_COLLECT", "DZ_DELIVERY"].includes(o.source))
+            {kitchen
               .slice(0, 10)
               .map((o) => (
                 <Link key={o.id} href={`/admin/orders/${o.id}`} className="today-card">
@@ -246,7 +213,7 @@ export default async function AdminHome({
                   <div>
                     <p className="today-card-name">{o.ref}</p>
                     <p className="today-card-meta">
-                      {o.name || "Walk-in"} · {orderTypeLabel(o.source)} · {o.items.map((i) => `${i.quantity}× ${i.name}`).join(", ")}
+                      {o.name || "Guest"} · {orderTypeLabel(o.source)} · {o.items.map((i) => `${i.quantity}× ${i.name}`).join(", ")}
                     </p>
                   </div>
                   <span>
@@ -258,9 +225,7 @@ export default async function AdminHome({
                   </span>
                 </Link>
               ))}
-            {!liveOrders.filter((o) => !["CLICK_COLLECT", "DZ_DELIVERY"].includes(o.source)).length ? (
-              <p className="today-empty">No in-house tickets for this day.</p>
-            ) : null}
+            {!kitchen.length ? <p className="today-empty">No open kitchen tickets for this day.</p> : null}
           </div>
         </section>
 

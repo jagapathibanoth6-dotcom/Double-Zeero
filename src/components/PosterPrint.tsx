@@ -3,7 +3,6 @@
 const ACTIONS = [
   { note: "Reserve", title: "Book a table" },
   { note: "Takeaway", title: "Click & collect" },
-  { note: "To your door", title: "Home delivery" },
 ];
 
 function qrImage(data: string) {

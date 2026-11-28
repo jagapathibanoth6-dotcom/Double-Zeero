@@ -24,6 +24,11 @@ export type SlotItem = {
   paid?: boolean;
   payText?: string;
   items?: string;
+  /** Extra details shown in the day list. */
+  phone?: string;
+  notes?: string;
+  highchair?: boolean;
+  party?: boolean;
 };
 
 const labels: Record<SlotKind, string> = {
@@ -245,9 +250,11 @@ function DiaryCard({ item, style }: { item: SlotItem; style: CSSProperties }) {
           {item.guests ? `${item.guests} pax` : item.note || item.ref}
           {item.tableCodes ? ` · ${item.tableCodes}` : ""}
         </p>
-        <span className={`pay-badge ${item.paid ? "is-paid" : item.payText?.startsWith("Part") ? "is-part" : "is-unpaid"}`}>
-          {item.paid ? "Paid" : item.payText?.startsWith("Part") ? "Part paid" : "Unpaid"}
-        </span>
+        {item.paid || item.payText ? (
+          <span className={`pay-badge ${item.paid ? "is-paid" : item.payText?.startsWith("Part") ? "is-part" : "is-unpaid"}`}>
+            {item.paid ? "Paid" : item.payText?.startsWith("Part") ? "Part paid" : "Unpaid"}
+          </span>
+        ) : null}
       </Link>
       {walkInBooking ? (
         <div className="diary-card-actions">

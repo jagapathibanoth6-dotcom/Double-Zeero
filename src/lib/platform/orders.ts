@@ -13,7 +13,6 @@ import { kitchenAsap, kitchenHours, timeWithinKitchen } from "@/lib/platform/hou
 import { todayISO } from "@/lib/booking";
 import { priceLine, type BasketItem } from "@/lib/platform/pricing";
 import { cleanVia } from "@/lib/platform/via";
-import { handToUber } from "@/lib/platform/uber";
 
 export async function ensureOrderVia() {
   const columns = (await db.$queryRawUnsafe(`PRAGMA table_info('Order')`)) as Array<{ name: string }>;
@@ -38,22 +37,6 @@ export async function priceBasket(locationId: LocationId, items: BasketItem[]): 
   return items.map((item) => priceLine(item, item.productId ? byId.get(item.productId) : undefined));
 }
 
-export async function quoteDelivery(locationId: LocationId, address: string) {
-  const settings = await getSettings(locationId);
-  if (!settings.deliveryEnabled) throw new Error("Delivery is not available from this restaurant.");
-  const postcode = address.toUpperCase();
-  const inArea = /M[0-9]|MANCHESTER|CHORLTON|DIDSBURY|SALE|STRETFORD|HULME|SALFORD/.test(postcode);
-  if (!inArea) {
-    return { ok: false as const, reason: "That address is outside the Double Zero delivery area.", feePence: 0, etaMinutes: 0 };
-  }
-  return {
-    ok: true as const,
-    feePence: settings.deliveryFeePence,
-    etaMinutes: 40,
-    provider: settings.uberReady ? "UBER_DIRECT" : "DEMO_UBER_DIRECT",
-  };
-}
-
 /** New unguessable order reference, e.g. `O-7KQ4M2XP`. */
 export async function nextOrderRef() {
   return uniqueRef("O", async (ref) => Boolean(await db.order.findUnique({ where: { ref }, select: { id: true } })));
@@ -76,19 +59,17 @@ export async function createOrder(input: {
   date?: string;
   time?: string;
   asap?: boolean;
-  address?: string;
   bookingId?: string;
   partyId?: string;
   guestId?: string;
   offerId?: string;
   chargeNow?: boolean;
   via?: string;
-  /** Staff orders (till/POS) keep the prices entered; customer orders are re-priced. */
-  trustedPrices?: boolean;
 }) {
   await ensureOrderVia();
   if (!input.items.length) throw new Error("Basket is empty.");
-  if (!input.trustedPrices) input = { ...input, items: await priceBasket(input.locationId, input.items) };
+  // Prices sent by the browser are never trusted: every line is re-priced here.
+  input = { ...input, items: await priceBasket(input.locationId, input.items) };
   const productIds = [...new Set(input.items.map((item) => item.productId).filter(Boolean))] as string[];
   if (productIds.length) {
     const live = await db.menuPrice.findMany({
@@ -117,18 +98,15 @@ export async function createOrder(input: {
       ? found
       : null;
   const discount = applyOffer(subtotal, offer);
-  let deliveryFee = 0;
-  let deliveryQuote = null;
-
-  const orderKind = input.source === "DZ_DELIVERY" ? "delivery" : "collect";
+  const orderKind = "collect";
   const whenDate = input.date || todayISO();
   const hours = kitchenHours(input.locationId, settings, whenDate);
 
   if (input.asap) {
     const asap = kitchenAsap(input.locationId, settings, orderKind, whenDate);
     if (!asap.ok) throw new Error(asap.reason);
-  } else if (input.source === "CLICK_COLLECT" || input.source === "DZ_DELIVERY") {
-    if (!input.time) throw new Error(input.source === "DZ_DELIVERY" ? "Choose a home delivery time or ASAP." : "Choose a collection time or ASAP.");
+  } else if (input.source === "CLICK_COLLECT") {
+    if (!input.time) throw new Error("Choose a collection time or ASAP.");
     if (!timeWithinKitchen(hours, input.time, orderKind)) {
       throw new Error(
         hours
@@ -138,21 +116,14 @@ export async function createOrder(input: {
     }
   }
 
-  if (input.source === "DZ_DELIVERY") {
-    if (!input.address) throw new Error("Add a delivery address.");
-    deliveryQuote = await quoteDelivery(input.locationId, input.address);
-    if (!deliveryQuote.ok) throw new Error(deliveryQuote.reason);
-    deliveryFee = deliveryQuote.feePence;
-  }
-
-  if ((input.source === "CLICK_COLLECT" || input.source === "DZ_DELIVERY") && input.time && input.date && !input.asap) {
+  if (input.source === "CLICK_COLLECT" && input.time && input.date && !input.asap) {
     const used = await db.order.count({
       where: { locationId: input.locationId, date: input.date, time: input.time, source: input.source },
     });
     if (used >= settings.collectionMaxPerSlot) throw new Error("That time is full.");
   }
 
-  const holdPay = input.chargeNow === false && (input.source === "CLICK_COLLECT" || input.source === "DZ_DELIVERY");
+  const holdPay = input.chargeNow === false && input.source === "CLICK_COLLECT";
   const order = await db.order.create({
     data: {
       ref: await nextOrderRef(),
@@ -167,11 +138,9 @@ export async function createOrder(input: {
       phone: input.phone?.trim() || "",
       notes: input.notes?.trim() || "",
       via: cleanVia(input.via),
-      address: input.address?.trim() || "",
       subtotalPence: subtotal,
       discountPence: discount,
-      deliveryFeePence: deliveryFee,
-      totalPence: subtotal - discount + deliveryFee,
+      totalPence: subtotal - discount,
       customerId: customer?.id,
       bookingId: input.bookingId,
       partyId: input.partyId,
@@ -199,23 +168,6 @@ export async function createOrder(input: {
     });
   }
 
-  if (!holdPay) {
-    await queuePrintJobs(order.id, order.items.map((item) => item.name));
-  }
-
-  if (deliveryQuote?.ok) {
-    await db.delivery.create({
-      data: {
-        orderId: order.id,
-        status: "QUOTED",
-        quotePence: deliveryQuote.feePence,
-        etaMinutes: deliveryQuote.etaMinutes,
-        courierName: settings.uberReady ? "Uber Direct" : "Uber Direct (demo)",
-      },
-    });
-  }
-
-  // print jobs queued above
   const saved = await db.order.findUniqueOrThrow({
     where: { id: order.id },
     include: { items: true, payments: { include: { refunds: true } }, delivery: true },
@@ -228,7 +180,6 @@ export async function createOrder(input: {
     Name: saved.name,
     Email: saved.email,
     Phone: saved.phone,
-    Address: saved.address || "Collection",
     Total: formatMoney(saved.totalPence),
     Payment: saved.payments.some((payment) => payment.status === "PAID" || payment.status === "PARTIAL_REFUND")
       ? `Paid ${formatMoney(saved.totalPence)}`
@@ -265,7 +216,6 @@ export async function finalizePaidOrder(orderId: string) {
   if (!saved) return;
   if (saved.status !== "PENDING_PAY") return;
   await db.order.update({ where: { id: saved.id }, data: { status: "NEW" } });
-  await queuePrintJobs(saved.id, saved.items.map((item) => item.name));
   if (!saved.email?.includes("@")) return;
   const loc = locations[saved.locationId as LocationId];
   await sendCustomerMail("order_confirmed", saved.email, {
@@ -279,8 +229,7 @@ export async function finalizePaidOrder(orderId: string) {
       Name: saved.name,
       Email: saved.email,
       Phone: saved.phone,
-      Address: saved.address || "Collection",
-      Total: formatMoney(saved.totalPence),
+        Total: formatMoney(saved.totalPence),
       Payment: `Paid ${formatMoney(saved.totalPence)}`,
       Items: saved.items.map((item) => `${item.quantity}x ${item.name}`).join(", "),
     },
@@ -324,43 +273,8 @@ export async function setOrderStatus(orderId: string, status: string, staffName 
       },
     });
   }
-  if (status === "READY" && order.source === "DZ_DELIVERY") {
-    await db.delivery.updateMany({ where: { orderId }, data: { status: "COURIER_ASSIGNED" } });
-  }
-  if (status === "DISPATCHED") {
-    try {
-      await handToUber(orderId);
-    } catch {
-      /* kitchen can still mark it out; staff can retry handover */
-    }
-    await db.delivery.updateMany({ where: { orderId }, data: { status: "ON_THE_WAY" } });
-    if (order.email) {
-      await notify("email", "delivery_dispatched", order.email, {
-        title: `Order ${order.ref} is on the way`,
-        intro: "Your Double Zero delivery has left the restaurant.",
-        details: {
-          Reference: order.ref,
-          Type: "Home delivery",
-          When: order.asap ? "ASAP" : `${order.date} ${order.time}`.trim(),
-          Address: order.address || "",
-        },
-      });
-    }
-  }
-  if (status === "COMPLETED") {
-    await db.delivery.updateMany({ where: { orderId }, data: { status: "DELIVERED" } });
-  }
   await db.auditLog.create({
     data: { actor: staffName, action: `order_${status.toLowerCase()}`, entity: "Order", entityId: orderId },
   });
   return order;
-}
-
-export async function queuePrintJobs(orderId: string, itemNames: string[]) {
-  const drink = /drink|coke|juice|water|sprite|beer|wine/i;
-  await db.printJob.create({ data: { orderId, target: "KITCHEN", status: "QUEUED" } });
-  if (itemNames.some((name) => drink.test(name))) {
-    await db.printJob.create({ data: { orderId, target: "BAR", status: "QUEUED" } });
-  }
-  await db.printJob.create({ data: { orderId, target: "RECEIPT", status: "QUEUED" } });
 }

@@ -2,7 +2,7 @@ export function orderTypeLabel(source?: string) {
   if (source === "CLICK_COLLECT") return "Click & collect";
   if (source === "DZ_DELIVERY") return "Home delivery";
   if (source === "POS") return "In restaurant";
-  if (source === "PARTY") return "Party food";
+  if (source === "PARTY" || source === "PARTY_PREORDER") return "Party food";
   return (source || "Order").replace(/_/g, " ");
 }
 
@@ -10,7 +10,7 @@ export function orderKindClass(source?: string) {
   if (source === "CLICK_COLLECT") return "is-collect";
   if (source === "DZ_DELIVERY") return "is-delivery";
   if (source === "POS") return "is-inside";
-  if (source === "PARTY") return "is-party";
+  if (source === "PARTY" || source === "PARTY_PREORDER") return "is-party";
   return "is-other";
 }
 

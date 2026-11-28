@@ -16,15 +16,12 @@ function confirmCopy(action: string, label: string, body?: Record<string, unknow
     if (status === "CANCELLED" || label === "Cancel") return "Cancel this order? Any paid amount will be refunded.";
     if (label === "Next") return "Move this ticket to the next stage?";
   }
-  if (action === "reprint") return label === "Re-fire" ? "Re-fire print tickets for this order?" : "Send print tickets to the kitchen queue?";
-  if (action === "print_done") return "Mark these tickets as printed?";
   if (action === "refund") return "Issue this refund to the same payment method?";
   if (action === "set_paid") return body?.paid ? "Mark this as paid?" : "Mark this as unpaid?";
   if (action === "party_cancel") return "Cancel this party booking and refund the deposit?";
   if (action === "cancel_booking") return "Cancel this booking? Any paid amount will be refunded.";
   if (action === "delete_booking") return "Delete this walk-in from the diary? This cannot be undone.";
   if (action === "delete_order") return "Delete this ticket from the kitchen? Any paid amount will be refunded. This cannot be undone.";
-  if (action === "uber_handover") return "Hand this drop to Uber Direct for tracking?";
   if (action === "decline_enquiry") return "Decline this enquiry?";
   if (action === "waitlist_book") return "Book this waitlist guest now?";
   return `Confirm ${label}?`;
@@ -43,14 +40,11 @@ function doneCopy(action: string, label: string, body?: Record<string, unknown>)
     if (status === "CANCELLED" || label === "Cancel") return "Order cancelled. Refund issued if anything was paid.";
     if (label === "Next") return "Ticket moved on. Board updated.";
   }
-  if (action === "reprint") return "Print tickets sent.";
-  if (action === "print_done") return "Tickets marked printed.";
   if (action === "refund") return "Refund issued.";
   if (action === "set_paid") return body?.paid ? "Marked paid." : "Marked unpaid.";
   if (action === "cancel_booking") return "Booking cancelled. Diary updated.";
   if (action === "delete_booking") return "Walk-in deleted. Diary updated.";
   if (action === "delete_order") return "Ticket deleted. Kitchen updated.";
-  if (action === "uber_handover") return "Handed to Uber Direct.";
   return `${label} done.`;
 }
 

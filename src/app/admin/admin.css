@@ -1928,36 +1928,6 @@
 
 /* ── Kitchen board ───────────────────────────────────────────────────────── */
 
-.admin-app .kitchen-prints {
-  display: grid;
-  gap: 0.5rem;
-}
-
-.admin-app .kitchen-print {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
-  padding: 0.75rem 0.85rem;
-  border: 1px solid var(--admin-line);
-  border-radius: var(--admin-radius-sm);
-  background: var(--admin-subtle);
-}
-
-.admin-app .kitchen-print-head {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.9rem;
-}
-
-.admin-app .kitchen-print-items {
-  margin-top: 0.3rem;
-  font-size: 0.8rem;
-  color: var(--admin-mute);
-}
-
 .admin-app .kitchen-actions {
   display: flex;
   flex-wrap: wrap;
@@ -2117,4 +2087,347 @@
   font-family: var(--font-sans);
   letter-spacing: 0;
   text-transform: none;
+}
+
+/* ── Bookings: header, day summary, list view ───────────────────────────── */
+
+.admin-app .bookings-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.admin-app .bookings-head-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.admin-app .view-switch {
+  display: inline-flex;
+  padding: 3px;
+  border: 1px solid var(--admin-line);
+  border-radius: 10px;
+  background: var(--admin-hover);
+}
+
+.admin-app .view-switch button {
+  height: 2rem;
+  padding: 0 0.9rem;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--admin-mute);
+  font-size: 0.84rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.admin-app .view-switch button.is-on {
+  background: var(--admin-card);
+  color: var(--admin-ink);
+  box-shadow: var(--admin-shadow);
+}
+
+.admin-app .view-switch button:focus-visible {
+  outline: none;
+  box-shadow: var(--admin-ring);
+}
+
+.admin-app .bookings-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9.5rem, 1fr));
+  margin-bottom: 1rem;
+}
+
+.admin-app .bookings-stats .admin-stat:hover {
+  border-color: var(--admin-line);
+  box-shadow: var(--admin-shadow);
+  transform: none;
+}
+
+.admin-app .diary-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+  padding: 0.65rem 0.75rem;
+}
+
+.admin-app .bookings-search {
+  flex: 1 1 16rem;
+  max-width: 22rem;
+  min-height: 2.1rem !important;
+  padding-left: 2.1rem !important;
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23a8a29e' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='m20 20-3.5-3.5'/%3E%3C/svg%3E")
+    no-repeat 0.65rem center / 1rem,
+    var(--admin-card) !important;
+  font-size: 0.85rem !important;
+}
+
+.admin-app .diary-toolbar .diary-filters {
+  margin-left: auto;
+}
+
+.admin-app .day-list {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.admin-app .day-slot {
+  overflow: hidden;
+  border: 1px solid var(--admin-line);
+  border-radius: var(--admin-radius);
+  background: var(--admin-card);
+  box-shadow: var(--admin-shadow);
+}
+
+.admin-app .day-slot.is-past {
+  opacity: 0.62;
+}
+
+.admin-app .day-slot.is-now {
+  border-color: rgba(196, 69, 29, 0.4);
+  box-shadow: 0 0 0 3px rgba(196, 69, 29, 0.08), var(--admin-shadow);
+}
+
+.admin-app .day-slot-head {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.6rem 1rem;
+  border-bottom: 1px solid var(--admin-line);
+  background: var(--admin-subtle);
+}
+
+.admin-app .day-slot-head time {
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  font-variant-numeric: tabular-nums;
+  color: var(--admin-ink);
+}
+
+.admin-app .day-slot-head span {
+  font-size: 0.8rem;
+  color: var(--admin-mute);
+}
+
+.admin-app .day-slot-now {
+  padding: 0.1rem 0.5rem;
+  border-radius: 999px;
+  background: var(--admin-ember);
+  color: #fff;
+  font-size: 0.7rem;
+  font-style: normal;
+  font-weight: 700;
+}
+
+.admin-app .day-slot-add {
+  margin-left: auto;
+  height: 1.8rem;
+  padding: 0 0.65rem;
+  border: 1px dashed var(--admin-line-strong);
+  border-radius: var(--admin-radius-sm);
+  background: transparent;
+  color: var(--admin-mute);
+  font-size: 0.76rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.admin-app .day-slot-add:hover {
+  border-color: var(--admin-amber);
+  background: var(--admin-amber-soft);
+  color: var(--admin-amber);
+}
+
+.admin-app .day-rows li + li {
+  border-top: 1px solid var(--admin-line);
+}
+
+.admin-app .day-row {
+  --accent: var(--admin-ember);
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 19rem) 11.5rem;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.8rem 1rem 0.8rem 1.15rem;
+  color: inherit;
+  transition: background-color 0.12s ease;
+}
+
+.admin-app .day-row::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.65rem;
+  bottom: 0.65rem;
+  width: 3px;
+  border-radius: 0 3px 3px 0;
+  background: var(--accent);
+}
+
+.admin-app .day-row.is-walkin { --accent: var(--admin-amber); }
+.admin-app .day-row.is-collect { --accent: var(--admin-teal); }
+.admin-app .day-row.is-delivery { --accent: var(--admin-blue); }
+
+.admin-app .day-row:hover {
+  background: var(--admin-subtle);
+}
+
+.admin-app .day-row:focus-visible {
+  outline: none;
+  box-shadow: inset var(--admin-ring);
+}
+
+.admin-app .day-row-name {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.95rem;
+  font-weight: 650;
+}
+
+.admin-app .day-chip {
+  padding: 0.05rem 0.45rem;
+  border-radius: 999px;
+  background: var(--admin-hover);
+  color: var(--admin-ink-2);
+  font-size: 0.68rem;
+  font-weight: 600;
+}
+
+.admin-app .day-chip.is-party {
+  background: var(--admin-violet-soft);
+  color: var(--admin-violet);
+}
+
+.admin-app .day-row-meta {
+  margin-top: 0.15rem;
+  font-size: 0.78rem;
+  color: var(--admin-mute);
+  font-variant-numeric: tabular-nums;
+}
+
+.admin-app .day-row-note,
+.admin-app .day-row-items {
+  margin-top: 0.3rem;
+  font-size: 0.8rem;
+  color: var(--admin-ink-2);
+}
+
+.admin-app .day-row-note {
+  font-style: italic;
+}
+
+.admin-app .day-row-items {
+  color: var(--admin-mute);
+}
+
+.admin-app .day-row-facts {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0.4rem;
+}
+
+.admin-app .day-kind,
+.admin-app .day-fact {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  height: 1.55rem;
+  padding: 0 0.55rem;
+  border: 1px solid var(--admin-line);
+  border-radius: 999px;
+  background: var(--admin-card);
+  font-size: 0.76rem;
+  color: var(--admin-ink-2);
+  white-space: nowrap;
+}
+
+.admin-app .day-fact b {
+  font-weight: 700;
+  color: var(--admin-ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.admin-app .day-kind {
+  border-color: transparent;
+  background: var(--admin-ember-soft);
+  color: var(--admin-ember-ink);
+  font-weight: 600;
+}
+
+.admin-app .day-kind.is-walkin { background: var(--admin-amber-soft); color: var(--admin-amber); }
+.admin-app .day-kind.is-collect { background: var(--admin-teal-soft); color: var(--admin-teal); }
+
+.admin-app .day-row-status {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.4rem;
+  min-width: 11rem;
+}
+
+.admin-app .day-row-open {
+  margin-left: 0.25rem;
+  color: var(--admin-faint);
+  transition: transform 0.15s ease, color 0.15s ease;
+}
+
+.admin-app .day-row:hover .day-row-open {
+  color: var(--admin-ember);
+  transform: translateX(2px);
+}
+
+.admin-app .day-list-empty {
+  padding: 3rem 1rem;
+  border: 1px dashed var(--admin-line-strong);
+  border-radius: var(--admin-radius);
+  background: var(--admin-card);
+  text-align: center;
+  color: var(--admin-mute);
+  font-size: 0.88rem;
+}
+
+.admin-app .day-list-empty-title {
+  margin-bottom: 0.3rem;
+  font-size: 1rem;
+  font-weight: 650;
+  color: var(--admin-ink);
+}
+
+@media (max-width: 860px) {
+  .admin-app .day-row {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.5rem;
+  }
+
+  .admin-app .day-row-facts,
+  .admin-app .day-row-status {
+    justify-content: flex-start;
+    min-width: 0;
+  }
+
+  .admin-app .day-row-open {
+    display: none;
+  }
+
+  .admin-app .diary-toolbar .diary-filters {
+    margin-left: 0;
+  }
+
+  .admin-app .bookings-search {
+    max-width: none;
+  }
 }

@@ -15,14 +15,14 @@ export async function OrdersScreen({
   kind = "all",
   dateParam,
 }: {
-  kind?: "all" | "CLICK_COLLECT" | "DZ_DELIVERY";
+  kind?: "all" | "CLICK_COLLECT";
   dateParam?: string;
 }) {
   const branch = await requireBranch();
   const today = todayISO();
   const date = isISODate(dateParam) ? dateParam : today;
   const { start, end } = londonDayRange(date);
-  const tracking = kind === "CLICK_COLLECT" || kind === "DZ_DELIVERY";
+  const tracking = kind === "CLICK_COLLECT";
   const orders = await db.order.findMany({
     where: {
       locationId: branch,
@@ -39,14 +39,12 @@ export async function OrdersScreen({
     take: tracking ? 200 : 120,
   });
 
-  const title = kind === "CLICK_COLLECT" ? "Click & collect" : kind === "DZ_DELIVERY" ? "Home delivery" : "Orders";
+  const title = kind === "CLICK_COLLECT" ? "Click & collect" : "Orders";
   const copy =
     kind === "CLICK_COLLECT"
       ? "Pick a day. Move tickets from orders to cooking, then still to collect, then picked up."
-      : kind === "DZ_DELIVERY"
-        ? "Pick a day. Move tickets from orders to cooking, then on the way, then delivered."
-        : "Click & collect, home delivery and in-restaurant tickets.";
-  const base = kind === "CLICK_COLLECT" ? "/admin/collect" : kind === "DZ_DELIVERY" ? "/admin/delivery" : "/admin/orders";
+      : "Click & collect and party pre-order tickets.";
+  const base = kind === "CLICK_COLLECT" ? "/admin/collect" : "/admin/orders";
   const loc = locations[branch];
 
   if (tracking) {
@@ -127,7 +125,7 @@ export async function OrdersScreen({
             leftPence: bill.leftPence,
             payments: serializePayments(order.payments),
             fresh:
-              ["CLICK_COLLECT", "DZ_DELIVERY"].includes(order.source) &&
+              order.source === "CLICK_COLLECT" &&
               order.status !== "CANCELLED" &&
               order.status !== "COMPLETED" &&
               order.status !== "PENDING_PAY" &&

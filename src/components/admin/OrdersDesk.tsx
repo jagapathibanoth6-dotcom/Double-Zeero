@@ -28,9 +28,7 @@ export type OrderCard = {
 const filters = [
   { id: "all", label: "All" },
   { id: "CLICK_COLLECT", label: "Click & collect" },
-  { id: "DZ_DELIVERY", label: "Home delivery" },
-  { id: "POS", label: "In restaurant" },
-  { id: "PARTY", label: "Party food" },
+  { id: "PARTY_PREORDER", label: "Party food" },
 ] as const;
 
 export function OrdersDesk({
@@ -45,9 +43,7 @@ export function OrdersDesk({
     () => ({
       all: orders.length,
       CLICK_COLLECT: orders.filter((order) => order.source === "CLICK_COLLECT").length,
-      DZ_DELIVERY: orders.filter((order) => order.source === "DZ_DELIVERY").length,
-      POS: orders.filter((order) => order.source === "POS").length,
-      PARTY: orders.filter((order) => order.source === "PARTY").length,
+      PARTY_PREORDER: orders.filter((order) => order.source === "PARTY_PREORDER").length,
     }),
     [orders],
   );
@@ -57,7 +53,7 @@ export function OrdersDesk({
     <div>
       <div className="diary-filters is-orders">
         {filters
-          .filter((row) => row.id === "all" || counts[row.id] > 0 || row.id !== "PARTY")
+          .filter((row) => row.id !== "PARTY_PREORDER" || counts[row.id] > 0)
           .map((row) => (
             <button
               key={row.id}

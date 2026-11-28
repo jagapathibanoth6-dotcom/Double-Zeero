@@ -18,7 +18,6 @@ import {
   categoryTitle,
   categoryOrder,
   productPhoto,
-  joinAddress,
 } from "@/components/order/order-desk-helpers";
 
 export type OrderDeskSeed = {
@@ -35,7 +34,8 @@ export type OrderDeskSeed = {
   via?: string;
 };
 
-export function OrderDesk({ mode, seed }: { mode: "CLICK_COLLECT" | "DZ_DELIVERY"; seed?: OrderDeskSeed }) {
+/** Click & collect order form (the only kind of online order). */
+export function OrderDesk({ seed }: { seed?: OrderDeskSeed }) {
   const router = useRouter();
   const [locationId, setLocationId] = useState<LocationId>(seed?.locationId || "manchester");
   const [date, setDate] = useState(seed?.date || todayISO());
@@ -50,11 +50,6 @@ export function OrderDesk({ mode, seed }: { mode: "CLICK_COLLECT" | "DZ_DELIVERY
   } | null>(seed?.when || null);
   const [products, setProducts] = useState<Product[]>(seed?.products || []);
   const [basket, setBasket] = useState<BasketItem[]>([]);
-  const [line1, setLine1] = useState("");
-  const [line2, setLine2] = useState("");
-  const [city, setCity] = useState("Manchester");
-  const [postcode, setPostcode] = useState("");
-  const [quote, setQuote] = useState<{ ok?: boolean; feePence?: number; etaMinutes?: number; reason?: string; error?: string } | null>(null);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -71,7 +66,6 @@ export function OrderDesk({ mode, seed }: { mode: "CLICK_COLLECT" | "DZ_DELIVERY
   const [drafts, setDrafts] = useState<Record<string, { extras: string[]; removed: string[]; special: string }>>({});
 
   const kitchen = locations[locationId];
-  const address = joinAddress({ line1, line2, city, postcode });
 
   useEffect(() => {
     let ignore = false;
@@ -105,7 +99,6 @@ export function OrderDesk({ mode, seed }: { mode: "CLICK_COLLECT" | "DZ_DELIVERY
       body: JSON.stringify({ locationId }),
     }).catch(() => undefined);
     setBasket([]);
-    setQuote(null);
     setCustomise(null);
     setEditingLineId(null);
     setDrafts({});
@@ -119,8 +112,7 @@ export function OrderDesk({ mode, seed }: { mode: "CLICK_COLLECT" | "DZ_DELIVERY
   }, [locationId]);
 
   useEffect(() => {
-    const kind = mode === "DZ_DELIVERY" ? "delivery" : "collect";
-    const q = new URLSearchParams({ locationId, date, kind });
+    const q = new URLSearchParams({ locationId, date, kind: "collect" });
     fetch(`/api/order/when?${q}`)
       .then((r) => r.json())
       .then((d) => {
@@ -144,7 +136,7 @@ export function OrderDesk({ mode, seed }: { mode: "CLICK_COLLECT" | "DZ_DELIVERY
         // Clear the chosen time if it is no longer offered.
         setTime((current) => (current && !openTimes.has(current) ? "" : current));
       });
-  }, [locationId, date, mode]);
+  }, [locationId, date]);
 
   useEffect(() => {
     if (asap && when && !when.asap.ok) setAsap(false);
@@ -162,8 +154,7 @@ export function OrderDesk({ mode, seed }: { mode: "CLICK_COLLECT" | "DZ_DELIVERY
   }, [products]);
 
   const subtotal = basket.reduce((sum, item) => sum + item.unitPence * item.quantity, 0);
-  const deliveryFee = mode === "DZ_DELIVERY" && quote?.ok ? quote.feePence || 0 : 0;
-  const total = subtotal + deliveryFee;
+  const total = subtotal;
 
   function qtyFor(productId: string) {
     return basket.filter((item) => item.productId === productId).reduce((sum, item) => sum + item.quantity, 0);
@@ -296,15 +287,6 @@ export function OrderDesk({ mode, seed }: { mode: "CLICK_COLLECT" | "DZ_DELIVERY
     setSpecial("");
   }
 
-  async function checkAddress() {
-    const res = await fetch("/api/order/quote", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ locationId, address }),
-    });
-    setQuote(await res.json());
-  }
-
   function startPay() {
     setError("");
     const fail = (message: string) => {
@@ -317,10 +299,9 @@ export function OrderDesk({ mode, seed }: { mode: "CLICK_COLLECT" | "DZ_DELIVERY
     const useAsap = asap || (!time && Boolean(when?.asap.ok));
     const useTime = useAsap ? "" : time || firstSlot;
     if (!useAsap && !useTime) {
-      return fail(mode === "DZ_DELIVERY" ? "Choose a home delivery time or ASAP." : "Choose a collection time or ASAP.");
+      return fail("Choose a collection time or ASAP.");
     }
     if (useAsap && when && !when.asap.ok) return fail(when.asap.reason);
-    if (mode === "DZ_DELIVERY" && !quote?.ok) return fail("Check your home address first.");
     if (!total) return fail("Basket total is empty.");
     if (useAsap && !asap) setAsap(true);
     if (useTime && useTime !== time) setTime(useTime);
@@ -340,7 +321,7 @@ export function OrderDesk({ mode, seed }: { mode: "CLICK_COLLECT" | "DZ_DELIVERY
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           locationId,
-          source: mode,
+          source: "CLICK_COLLECT",
           items: basket,
           name,
           email,
@@ -349,8 +330,7 @@ export function OrderDesk({ mode, seed }: { mode: "CLICK_COLLECT" | "DZ_DELIVERY
           date,
           time: useTime,
           asap: useAsap,
-          address,
-          offerId: mode === "CLICK_COLLECT" ? "offer-collect" : undefined,
+          offerId: "offer-collect",
           via: seed?.via || "",
           chargeNow: !useStripe,
         }),
@@ -407,15 +387,13 @@ export function OrderDesk({ mode, seed }: { mode: "CLICK_COLLECT" | "DZ_DELIVERY
           })}
         </div>
         <p className="mt-4 text-sm text-mute">
-          {mode === "CLICK_COLLECT"
-            ? `Collect from ${kitchen.address}, ${kitchen.city}, ${kitchen.postcode}.`
-            : `Kitchen: ${kitchen.address}, ${kitchen.city}, ${kitchen.postcode}.`}
+          {`Collect from ${kitchen.address}, ${kitchen.city}, ${kitchen.postcode}.`}
           {when ? ` ${when.openLabel}.` : ""}
         </p>
 
         <div className="mt-8">
           <p className="display text-[0.72rem] tracking-[0.2em] text-ember">
-            {mode === "DZ_DELIVERY" ? "Home delivery time" : "Collection time"}
+            Collection time
           </p>
           <div className="mt-4 grid items-end gap-3 sm:grid-cols-[1fr_1fr_auto]">
           <div>
@@ -478,42 +456,6 @@ export function OrderDesk({ mode, seed }: { mode: "CLICK_COLLECT" | "DZ_DELIVERY
               : when?.asap.reason || "Times follow this restaurant’s opening hours."}
           </p>
         </div>
-
-        {mode === "DZ_DELIVERY" ? (
-          <div className="site-card address-card mt-6">
-            <p className="display text-[0.68rem] tracking-[0.2em] text-ember">Home address</p>
-            <div className="mt-3 grid gap-2 sm:grid-cols-6">
-              <div className="sm:col-span-3">
-                <label htmlFor="line1">Line 1</label>
-                <input id="line1" value={line1} onChange={(e) => setLine1(e.target.value)} placeholder="House number and street" />
-              </div>
-              <div className="sm:col-span-3">
-                <label htmlFor="line2">Line 2</label>
-                <input id="line2" value={line2} onChange={(e) => setLine2(e.target.value)} placeholder="Flat, optional" />
-              </div>
-              <div className="sm:col-span-2">
-                <label htmlFor="city">City</label>
-                <input id="city" value={city} onChange={(e) => setCity(e.target.value)} placeholder="Manchester" />
-              </div>
-              <div className="sm:col-span-2">
-                <label htmlFor="postcode">Postcode</label>
-                <input id="postcode" value={postcode} onChange={(e) => setPostcode(e.target.value)} placeholder="M2 2BY" />
-              </div>
-              <div className="flex items-end sm:col-span-2">
-                <button type="button" className="slot w-full" onClick={checkAddress}>
-                  Check
-                </button>
-              </div>
-            </div>
-            {quote ? (
-              <p className="mt-2 text-sm">
-                {quote.ok
-                  ? `Home delivery ${formatMoney(quote.feePence || 0)} · about ${quote.etaMinutes} minutes`
-                  : quote.reason || quote.error}
-              </p>
-            ) : null}
-          </div>
-        ) : null}
 
         <div className="mt-12 space-y-5">
           {grouped.map(([category, items]) => {
@@ -705,7 +647,7 @@ export function OrderDesk({ mode, seed }: { mode: "CLICK_COLLECT" | "DZ_DELIVERY
       <aside className={`form-panel order-pay${basket.length ? "" : " is-empty"}`}>
         <div className="order-pay-scroll">
           <p className="display text-[0.7rem] tracking-[0.2em] text-ember">
-            {mode === "DZ_DELIVERY" ? "Home delivery" : "Click & collect"}
+            Click & collect
           </p>
           <p className="mt-2 text-sm text-mute">
             {kitchen.address}, {kitchen.postcode}
@@ -727,12 +669,6 @@ export function OrderDesk({ mode, seed }: { mode: "CLICK_COLLECT" | "DZ_DELIVERY
               <dt>Food</dt>
               <dd>{formatMoney(subtotal)}</dd>
             </div>
-            {deliveryFee ? (
-              <div className="flex justify-between">
-                <dt>Home delivery</dt>
-                <dd>{formatMoney(deliveryFee)}</dd>
-              </div>
-            ) : null}
             <div className="flex justify-between font-medium">
               <dt>Total</dt>
               <dd>{formatMoney(total)}</dd>
@@ -754,14 +690,12 @@ export function OrderDesk({ mode, seed }: { mode: "CLICK_COLLECT" | "DZ_DELIVERY
         <PaySheet
           open={payOpen}
           amountPence={total}
-          title={mode === "DZ_DELIVERY" ? "Pay for home delivery" : "Pay for collection"}
+          title="Pay for collection"
           details={[
             { label: "Name", value: name },
             { label: "Email", value: email },
-            { label: "Order", value: mode === "DZ_DELIVERY" ? "Home delivery" : "Click & collect" },
-            mode === "DZ_DELIVERY"
-              ? { label: "Address", value: address }
-              : { label: "Restaurant", value: `${kitchen.shortName} · ${kitchen.address}, ${kitchen.postcode}` },
+            { label: "Order", value: "Click & collect" },
+            { label: "Restaurant", value: `${kitchen.shortName} · ${kitchen.address}, ${kitchen.postcode}` },
             {
               label: "When",
               value: asap ? `ASAP · about ${when?.asap.etaMinutes || 40} min` : `${formatBookingDate(date)}${time ? ` · ${time}` : ""}`,

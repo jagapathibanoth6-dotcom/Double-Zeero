@@ -11,12 +11,6 @@ export const defaultJourneys = [
     title: "Click & collect",
     copy: "Order now and pick it up at the counter.",
   },
-  {
-    href: "/order/delivery?via=Website",
-    kicker: "To your door",
-    title: "Home delivery",
-    copy: "Order from the kitchen to your address.",
-  },
 ];
 
 export function JourneyChoices({

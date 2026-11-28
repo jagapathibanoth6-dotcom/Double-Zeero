@@ -36,9 +36,7 @@ export const menuActions: ActionHandlers = {
     revalidatePath("/manchester");
     revalidatePath("/chorlton");
     revalidatePath("/order/collect");
-    revalidatePath("/order/delivery");
     revalidatePath("/admin/menu");
-    revalidatePath("/admin/pos");
     revalidatePath("/api/menu");
     return NextResponse.json({ ok: true, locationId, available });
   },

@@ -27,55 +27,16 @@ function minutesAgo(date: Date) {
 
 export default async function AdminKitchen() {
   const branch = await requireBranch();
-  const [orders, prints] = await Promise.all([
-    db.order.findMany({
-      where: { locationId: branch, status: { in: columns } },
-      include: { items: true, booking: true, guest: true, payments: { include: { refunds: true } } },
-    }),
-    db.printJob.findMany({
-      where: { order: { locationId: branch }, status: "QUEUED" },
-      include: { order: { include: { items: true } } },
-      orderBy: { createdAt: "asc" },
-      take: 20,
-    }),
-  ]);
+  const orders = await db.order.findMany({
+    where: { locationId: branch, status: { in: columns } },
+    include: { items: true, booking: true, guest: true, payments: { include: { refunds: true } } },
+    orderBy: { createdAt: "asc" },
+  });
   return (
     <div className="kitchen-page">
       <KitchenRefresh />
       <h1 className="admin-page-title">{locations[branch].shortName} kitchen</h1>
       <p className="admin-page-copy">Tickets for this restaurant only. The board refreshes itself.</p>
-
-      <section className="admin-panel mt-6">
-        <div className="today-panel-head">
-          <div>
-            <h2>Print queue</h2>
-            <p>{prints.length ? `${prints.length} waiting to print` : "Nothing waiting to print"}</p>
-          </div>
-        </div>
-        {prints.length ? (
-          <div className="kitchen-prints">
-            {prints.map((job) => (
-              <article key={job.id} className="kitchen-print">
-                <div>
-                  <p className="kitchen-print-head">
-                    <span className="admin-badge">{job.target.charAt(0) + job.target.slice(1).toLowerCase()}</span>
-                    <strong>{job.order.ref}</strong>
-                  </p>
-                  <p className="kitchen-print-items">
-                    {job.order.items.map((item) => `${item.quantity}× ${item.name}`).join(", ")}
-                  </p>
-                </div>
-                <div className="kitchen-actions">
-                  <ActionButton action="print_done" body={{ id: job.id }} label="Mark printed" />
-                  <ActionButton action="reprint" body={{ orderId: job.orderId }} label="Re-fire" />
-                </div>
-              </article>
-            ))}
-          </div>
-        ) : (
-          <p className="today-empty">Queue clear.</p>
-        )}
-      </section>
 
       <div className="kitchen-board">
         {columns.map((status) => {
@@ -111,7 +72,6 @@ export default async function AdminKitchen() {
                     </ul>
                     <div className="kitchen-actions">
                       <ActionButton action="order_status" body={{ orderId: o.id, status: lane.next }} label={lane.action} />
-                      <ActionButton action="reprint" body={{ orderId: o.id }} label="Print" />
                       <ActionButton action="delete_order" body={{ orderId: o.id }} label="Delete" />
                       <RefundControls payments={o.payments} orderId={o.id} compact />
                     </div>

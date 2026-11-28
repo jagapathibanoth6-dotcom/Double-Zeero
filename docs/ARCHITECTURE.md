@@ -14,7 +14,7 @@ Browser ──► Next.js app
              src/lib/platform    business logic (bookings, orders, payments, mail…)
                      │
                      ▼
-             Prisma ──► SQLite (prisma/dev.db)          Stripe · SMTP · ResDiary · Uber Direct
+             Prisma ──► SQLite (prisma/dev.db)          Stripe · SMTP · ResDiary
 ```
 
 Pages and API routes should stay thin: read the request, call a function in `src/lib/platform`, return the result.
@@ -25,18 +25,18 @@ Pages and API routes should stay thin: read the request, call a function in `src
 | --- | --- |
 | `StaffUser` | Dashboard logins. `role` is `owner` or `kitchen` (roles are shown but not yet enforced — see PRODUCTION.md). |
 | `Customer` | Customer accounts, created automatically the first time someone books or orders. |
-| `LocationSettings` | Per-restaurant settings edited in *Admin → Settings*: hours, booking rules, deposits, delivery, Stripe/Uber keys. |
+| `LocationSettings` | Per-restaurant settings edited in *Admin → Settings*: hours, booking rules, deposits, click & collect slots, Stripe keys. (Old delivery/Uber columns are unused.) |
 | `Table`, `TableCombo` | Floor plan and which tables can be pushed together. |
 | `Booking`, `BookingGuest` | Table and collection bookings. |
 | `Party` | Party menu for a large booking: guests pre-order their food from a shared link. |
 | `Enquiry` | Large-group requests that staff confirm by hand. |
 | `WaitlistEntry` | People waiting for a full sitting. |
 | `MenuProduct`, `MenuPrice` | Menu items; prices (and sizes) are per restaurant and can be switched off. |
-| `Order`, `OrderItem` | Click & collect, delivery, till (POS), party and marketplace orders. |
+| `Order`, `OrderItem` | Click & collect and party pre-orders. (Older rows may be home delivery or till orders from before those were removed.) |
 | `Payment`, `Refund` | Money in and out. `provider` is `STRIPE` or `DEMO` (manual/demo). |
-| `Delivery` | Delivery quote/dispatch details (Uber Direct). |
+| `Delivery` | Unused since home delivery was removed; kept so older orders still show their courier details. |
 | `Offer` | Discounts (percentage, minimum spend, order type). |
-| `Notification`, `PrintJob`, `AuditLog` | Email log, kitchen printer queue, change history. |
+| `Notification`, `AuditLog` | Email log, change history. (`PrintJob` is unused since ticket printing was removed.) |
 | `QrCode`, `GalleryPhoto` | QR poster links and the website gallery. |
 
 Statuses are plain strings. The main ones:
@@ -57,10 +57,11 @@ Statuses are plain strings. The main ones:
 1. The order page (`components/OrderDesk.tsx`) builds a basket.
 2. `POST /api/order` → `createOrder()`:
    - `priceBasket()` **re-prices every line from the database** (sizes and pizza extras);
-   - checks kitchen hours, slot capacity and the delivery area;
+   - the website only accepts click & collect (`publicOrderSource()` in `api/order`); party pre-orders use the same function;
+   - checks kitchen hours and slot capacity;
    - applies a valid offer and saves the order.
 3. Payment: with Stripe set up for that restaurant, the customer goes to Stripe Checkout and the order stays `PENDING_PAY` until paid. Without Stripe, a demo payment is recorded — **only outside production** (`demoPaymentsAllowed()` in `payments.ts`).
-4. Paid orders are queued for the kitchen printers (`queuePrintJobs()`).
+4. Paid orders appear on the kitchen board (*Admin → Kitchen*) and the click & collect board.
 
 ### Payments — `src/lib/platform/stripe.ts`, `payments.ts`, `pay.ts`
 - `createStripeCheckout()` starts a Checkout session using that restaurant's key.
@@ -100,7 +101,7 @@ Customer-facing (`src/app/api`):
 | `POST /api/enquiry` | Large-group enquiry |
 | `GET /api/menu` | Live menu for a restaurant |
 | `GET/POST /api/order` | Look up / place an order |
-| `POST /api/order/quote`, `GET /api/order/when` | Delivery quote; open dates and times |
+| `GET /api/order/when` | Open collection dates and times |
 | `GET /api/location` | Nearest restaurant |
 | `/api/party/[code]/…` | Party page data, guest list, guest orders, paying |
 | `POST /api/pay/checkout`, `GET /api/pay/ready`, `POST /api/pay/webhook` | Stripe |

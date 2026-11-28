@@ -42,7 +42,6 @@ export async function LocationSite({
             items={[
               { href: "#book", kicker: "Reserve", title: "Book a table", copy: `A sitting at ${loc.shortName}.` },
               { href: addVia(`/order/collect?location=${loc.id}`, loc.shortName), kicker: "Takeaway", title: "Click & collect", copy: "Order now and pick it up at the counter." },
-              { href: addVia(`/order/delivery?location=${loc.id}`, loc.shortName), kicker: "To your door", title: "Home delivery", copy: "Order from this kitchen to your address." },
             ]}
           />
           <a href={loc.phoneHref} className="journey-call">

@@ -40,7 +40,7 @@ export default async function AdminBookings({
       where: {
         locationId: location,
         date,
-        source: { in: ["CLICK_COLLECT", "DZ_DELIVERY", "POS"] },
+        source: "CLICK_COLLECT",
         status: { notIn: ["CANCELLED"] },
       },
       include: { payments: { include: { refunds: true } }, items: true },
@@ -73,13 +73,20 @@ export default async function AdminBookings({
         note: b.source === "walk-in" ? "Walk-in" : b.party ? `party ${b.party.code}` : undefined,
         href: `/admin/bookings/${b.id}`,
         paid: bill.label === "Paid",
+        // No food ordered and no deposit taken: nothing to pay, so no payment badge.
         payText:
-          bill.refundedPence > 0
-            ? `${bill.label} · refunded ${formatMoney(bill.refundedPence)}`
-            : due
-              ? `${bill.label} · ${formatMoney(bill.paidPence)} paid · ${formatMoney(bill.leftPence)} left`
-              : bill.label,
+          !due && !payments.length
+            ? ""
+            : bill.refundedPence > 0
+              ? `${bill.label} · refunded ${formatMoney(bill.refundedPence)}`
+              : due
+                ? `${bill.label} · ${formatMoney(bill.paidPence)} paid · ${formatMoney(bill.leftPence)} left`
+                : bill.label,
         items: food.join(", "),
+        phone: b.phone,
+        notes: b.notes,
+        highchair: b.highchair,
+        party: Boolean(b.party),
       };
     }),
     ...orders
@@ -89,11 +96,11 @@ export default async function AdminBookings({
         return {
           id: o.id,
           time: o.asap ? "ASAP" : o.time,
-          name: o.name || (o.source === "POS" ? "Walk-in" : "Order"),
+          name: o.name || "Order",
           ref: o.ref,
           status: o.status,
-          kind: (o.source === "DZ_DELIVERY" ? "delivery" : o.source === "POS" ? "walkin" : "collect") as SlotItem["kind"],
-          note: o.source === "DZ_DELIVERY" ? "Home delivery" : o.source === "POS" ? "Walk-in" : "Click & collect",
+          kind: "collect" as SlotItem["kind"],
+          note: "Click & collect",
           href: `/admin/orders/${o.id}`,
           paid: bill.label === "Paid",
           payText:
@@ -101,6 +108,8 @@ export default async function AdminBookings({
               ? `${bill.label} · refunded ${formatMoney(bill.refundedPence)}`
               : `${bill.label} · ${formatMoney(bill.paidPence)} paid · ${formatMoney(bill.leftPence)} left`,
           items: o.items.map((item) => `${item.quantity}× ${item.name}`).join(", "),
+          phone: o.phone,
+          notes: o.notes,
         };
       }),
   ];

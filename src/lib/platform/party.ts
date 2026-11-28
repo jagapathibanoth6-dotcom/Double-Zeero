@@ -1,6 +1,6 @@
 import { db } from "@/lib/db";
 import { partyReminderText } from "@/lib/platform/notify";
-import { createOrder, priceBasket, queuePrintJobs, type BasketItem } from "@/lib/platform/orders";
+import { createOrder, priceBasket, type BasketItem } from "@/lib/platform/orders";
 import { charge } from "@/lib/platform/payments";
 import type { LocationId } from "@/data/site";
 import type { Serialized } from "@/types/serialized";
@@ -77,7 +77,6 @@ export async function guestOrder(input: {
         await charge({ amountPence: subtotal, kind: "ORDER", orderId: existing.id, to: party.booking.email });
       }
     }
-    await queuePrintJobs(existing.id, items.map((item) => item.name));
     return db.order.findUniqueOrThrow({ where: { id: existing.id }, include: { items: true, payments: true } });
   }
 
